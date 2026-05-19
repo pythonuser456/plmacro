@@ -1,5 +1,5 @@
 ; the code might not be the best
-
+aaa
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ProcessSetPriority "High"
