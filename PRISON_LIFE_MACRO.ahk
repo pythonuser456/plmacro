@@ -1,4 +1,5 @@
 ; the code might not be the best
+; made by @Idkwhattonamethis233 on youtube
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
