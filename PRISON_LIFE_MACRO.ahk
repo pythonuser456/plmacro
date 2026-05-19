@@ -1,5 +1,5 @@
 ; the code might not be the best
-; made by @Idkwhattonamethis233 on youtube
+
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ProcessSetPriority "High"
@@ -77,7 +77,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     }
 
     if Slot7Bool
-        SoundBeep(ScriptActive ? 550 : 400, 20)
+        SoundBeep(550, 20)
 }
 
 ; -- Blatant Gun Macro --
@@ -116,6 +116,8 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 ; -- Lag Switcher --
 #HotIf WinExist("ahk_exe clumsy.exe") && Slot6Bool && ScriptActive
 $*t:: {
+    SoundBeep(550, 20)
+
     global IsLagging := !IsLagging
     global LagSwitchTL
     
@@ -135,6 +137,7 @@ $*t:: {
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
         
+        SoundBeep(400, 20)
         KeyWait "t"
         return
     }
@@ -152,7 +155,7 @@ $*t:: {
     LagSwitchStatus.Redraw()
 
     SetTimer(LagSwitchCount, 1000)
-    KeyWait "F3" 
+    KeyWait "t" 
 }
 LagSwitchCount() {
     global IsLagging, LagSwitchTL
@@ -177,6 +180,7 @@ LagSwitchCount() {
         LagSwitchStatus.Value := 0
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
+        SoundBeep(400, 20)
     }
 }
 
