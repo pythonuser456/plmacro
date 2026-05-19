@@ -1,5 +1,4 @@
 ; the code might not be the best
-; made by @Idkwhattonamethis233 on youtube
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -76,6 +75,9 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
         Send "{Blind}4"
         Send "{Blind}r"
     }
+
+    if Slot7Bool
+        SoundBeep(ScriptActive ? 550 : 400, 20)
 }
 
 ; -- Blatant Gun Macro --
