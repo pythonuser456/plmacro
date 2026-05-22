@@ -45,7 +45,7 @@ if not A_IsAdmin {
 MainGui()
 OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 
-; -- Toggle LMB, R, T, F--
+; -- Toggle LMB, R, T, G--
 *$Alt:: {
     global ScriptActive := !ScriptActive
     
@@ -201,7 +201,7 @@ $*g:: {
         return
     }
 
-    X := Round((Spin * BaseDPI * BaseSens) / (Number(DPI_Input.Value) * Number(Sens_Input.Value)))
+    X := Round((Spin * BaseDPI * BaseSens) / (DPI_Input.Value * Sens_Input.Value))
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 
     Send "{Blind}c"
