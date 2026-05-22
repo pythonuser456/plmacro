@@ -201,7 +201,7 @@ $*g:: {
         return
     }
 
-    X := Round((Spin * BaseDPI * BaseSens) / (DPI_Input.Value * Sens_Input.Value))
+    X := Round((Spin * BaseDPI * BaseSens) / (Number(DPI_Input.Value) * Number(Sens_Input.Value)))
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 
     Send "{Blind}c"
