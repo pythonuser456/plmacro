@@ -430,7 +430,7 @@ HelpGui() {
 
         GuiHelp.Add("Text", "xp yp+35 wp Center", "To actually use the very fast weapon `nswap macro, you need to toggle gun 1,`n gun 2, gun 3, and gun 4 in the settings `n depending on how many guns you have")
 
-        GuiHelp.Add("Text", "xp yp+60 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 3000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
+        GuiHelp.Add("Text", "xp yp+60 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
 
         GuiHelp.Add("Text", "xp yp+95 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
 
