@@ -13,10 +13,6 @@ IsChatting := false
 Slot1Bool := false
 Slot2Bool := false
 Slot3Bool := false
-Slot4Bool := false
-Slot5Bool := false
-Slot6Bool := false
-Slot7Bool := false
 IsHelpVisible := false
 IsSettingsVisible := false
 IsCrouching := false
@@ -26,6 +22,7 @@ LagSwitchTL := 0
 GuiThing := ""
 GuiSetting := ""
 GuiHelp := ""
+i := 0
 
 Spin := 4000
 BaseDPI := 800
@@ -53,69 +50,51 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     StatusLabel.Opt(ScriptActive ? "Background00FF7F" : "BackgroundFF0000")
     StatusLabel.Redraw()
 
-    if Slot7Bool
+    if Slot3Bool
         SoundBeep(ScriptActive ? 550 : 400, 20)
 }
 
 #HotIf ScriptActive
 ; -- Reload All --
 *$r:: {
-    if (Slot1Bool) {
-        Send "{Blind}1"
-        Send "{Blind}r"
-    }
-    if (Slot2Bool) {
-        Send "{Blind}2"
-        Send "{Blind}r"
-    }
-    if (Slot3Bool) {
-        Send "{Blind}3"
-        Send "{Blind}r"
-    }
-    if (Slot4Bool) {
-        Send "{Blind}4"
-        Send "{Blind}r"
-    }
+    global i, Guns
 
-    if Slot7Bool
+    Loop Number(Guns.Value) {
+        i += 1
+
+        Send "{Blind}{" i "}"
+        DllCall("Sleep", "UInt", Number(ReloadDelay.Value))
+        Send "{Blind}r"
+    }
+    i := 0
+
+    if Slot3Bool
         SoundBeep(550, 20)
 }
 
 ; -- Blatant Gun Macro --
 ~$*LButton:: {
+    global GunDelay := 5
+    global Guns, i
+
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     while GetKeyState("LButton", "P")  {
-        if (Slot1Bool) {
-            Send "{Blind}1"
-            DllCall("Sleep", "UInt", 5)
+        Loop Number(Guns.Value) {
+            i += 1
+
+            Send "{Blind}{" i "}"
+            DllCall("Sleep", "UInt", Number(ShootDelay.Value))
             Click
-            DllCall("Sleep", "UInt", 5)
+            DllCall("Sleep", "UInt", Number(ShootDelay.Value))
         }
-        if (Slot2Bool) {
-            Send "{Blind}2"
-            DllCall("Sleep", "UInt", 5)
-            Click
-            DllCall("Sleep", "UInt", 5)
-        }
-        if (Slot3Bool) {
-            Send "{Blind}3"
-            DllCall("Sleep", "UInt", 5)
-            Click
-            DllCall("Sleep", "UInt", 5)
-        }
-        if (Slot4Bool) {
-            Send "{Blind}4"
-            DllCall("Sleep", "UInt", 5)
-            Click
-            DllCall("Sleep", "UInt", 5)
-        }
+        i := 0
     }
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 #HotIf
 
 ; -- Lag Switcher --
-#HotIf WinExist("ahk_exe clumsy.exe") && Slot6Bool && ScriptActive
+#HotIf WinExist("ahk_exe clumsy.exe") && Slot2Bool && ScriptActive
 $*t:: {
     global IsLagging := !IsLagging
     global LagSwitchTL
@@ -136,7 +115,7 @@ $*t:: {
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
         
-        if Slot7Bool
+        if Slot3Bool
             SoundBeep(400, 20)
 
         KeyWait "t"
@@ -156,7 +135,7 @@ $*t:: {
     LagSwitchStatus.Redraw()
     SetTimer(LagSwitchCount, 1000)
 
-    if Slot7Bool
+    if Slot3Bool
         SoundBeep(550, 20)
     
     KeyWait "t" 
@@ -185,7 +164,7 @@ LagSwitchCount() {
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
 
-        if Slot7Bool
+        if Slot3Bool
             SoundBeep(400, 20)
     }
 }
@@ -193,7 +172,7 @@ LagSwitchCount() {
 #HotIf ScriptActive
 ; -- Pressure Jump --
 $*g:: {
-    if Slot7Bool
+    if Slot3Bool
         SoundBeep(550, 20)
     
     if (DPI_Input.Value == 0 or Sens_Input.Value == 0) {
@@ -230,7 +209,7 @@ $*g:: {
 
 ; -- Shift Holder --
 ~$*LShift:: {
-    if (!Slot5Bool or IsChatting or IsCrouching) {
+    if (!Slot1Bool or IsChatting or IsCrouching) {
         return
     }
     global ShiftHolder := !ShiftHolder
@@ -435,15 +414,14 @@ HelpGui() {
         GuiHelp.Add("Text", "xp y185 wp Center", "Extra Info")
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
-        GuiHelp.Add("Text", "xp yp+25 wp Center", "WEAPONS MUST BE IN SLOTS 1, 2, 3, 4")
 
         GuiHelp.Add("Text", "xp yp+25 wp Center", "You can also press shift once to sprint by`n toggling Press Shift Once in the settings")
 
-        GuiHelp.Add("Text", "xp yp+35 wp Center", "To actually use the very fast weapon `nswap macro, you need to toggle gun 1,`n gun 2, gun 3, and gun 4 in the settings `n depending on how many guns you have")
+        GuiHelp.Add("Text", "xp yp+35 wp Center", "To actually use the very fast weapon `nswap macro, you need to type in how many`n guns you have in the settings")
 
-        GuiHelp.Add("Text", "xp yp+60 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
+        GuiHelp.Add("Text", "xp yp+45 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
 
-        GuiHelp.Add("Text", "xp yp+95 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
+        GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
 
         ; Credit in help GUI
         GuiHelp.SetFont("s10 cWhite", "Consolas")
@@ -456,8 +434,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w330 h625")
-        WinSetRegion("0-0 w410 h635 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w330 h570")
+        WinSetRegion("0-0 w410 h580 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -469,7 +447,6 @@ SettingsGui() {
 
     if (SettingsGuiShow == 0) {
         global GuiSetting, DPI_Input, Sens_Input
-        YPOS := 65
         global GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
 
@@ -477,61 +454,59 @@ SettingsGui() {
         GuiSetting.SetFont("s25 bold cWhite", "Segoe UI")
         GuiSetting.Add("Text", "x0 y0 w330 Center", "Macro Settings")
 
-        ; -- Slot 1 --
+        ; -- Gun Amount Choose --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 y60 w330",  "Gun 1")
+        GuiSetting.Add("Text", "x60 y60 w330",  "Gun Amount")
         
-        GuiSetting.Add("Text", "x250 y65 w27 h24 BackgroundFFFFFF")
-        Slot1 := GuiSetting.Add("Text", "x252 y67 w23 h20 Background000000")
-        Slot1.OnEvent("Click", (*) => SlotsClicked(1))
-        
-        ; -- Slot 2 --
+        GuiSetting.SetFont("cBlack")
+        Guns := GuiSetting.AddEdit("x269 yp+3 w25 h25 0x200", 0)
+        global Guns
+
+        ; -- Shoot Delay --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Gun 2")
+        GuiSetting.Add("Text", "x60 yp+25 w330",  "Shoot Delay")
+
+        GuiSetting.SetFont("s8 bold cWhite", "Consolas")
+        GuiSetting.Add("Text", "xp+125 yp+10 w330",  "(milisecond)")
         
-        GuiSetting.Add("Text", "x250 yp w27 h24 BackgroundFFFFFF")
-        Slot2 := GuiSetting.Add("Text", "x252 yp+3 w23 h20 Background000000")
-        Slot2.OnEvent("Click", (*) => SlotsClicked(2))
+        GuiSetting.SetFont("s15 bold cBlack", "Consolas")
+        ShootDelay := GuiSetting.AddEdit("x269 y93 w25 h25 0x200", 5)
+        global ShootDelay
 
-        ; -- Slot 3 --
+        ; -- Reload Delay --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Gun 3")
+        GuiSetting.Add("Text", "x60 yp+25 w330",  "Reload Delay")
+
+        GuiSetting.SetFont("s8 bold cWhite", "Consolas")
+        GuiSetting.Add("Text", "xp+135 yp+10 w330",  "(milisecond)")
         
-        GuiSetting.Add("Text", "x250 yp w27 h24 BackgroundFFFFFF")
-        Slot3 := GuiSetting.Add("Text", "x252 yp+3 w23 h20 Background000000")
-        Slot3.OnEvent("Click", (*) => SlotsClicked(3))
-
-        ; -- Slot 4 --
-        GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Gun 4")
-
-        GuiSetting.Add("Text", "x250 yp w27 h24 BackgroundFFFFFF")
-        Slot4 := GuiSetting.Add("Text", "x252 yp+3 w23 h20 Background000000")
-        Slot4.OnEvent("Click", (*) => SlotsClicked(4))
-
+        GuiSetting.SetFont("s15 bold cBlack", "Consolas")
+        ReloadDelay := GuiSetting.AddEdit("x269 y121 w25 h25 0x200", 0)
+        global ReloadDelay
+        
         ; -- Shift Option --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Press Shift Once")
+        GuiSetting.Add("Text", "x60 yp+40 w330", "Press Shift Once")
         
-        GuiSetting.Add("Text", "x250 yp w27 h24 BackgroundFFFFFF")
-        Slot5 := GuiSetting.Add("Text", "x252 yp+3 w23 h20 Background000000")
-        Slot5.OnEvent("Click", (*) => SlotsClicked(5))
+        GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
+        Slot1 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+        Slot1.OnEvent("Click", (*) => SlotsClicked(1))
 
         ; -- Lag Switch Option --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Lag Switch")
 
-        GuiSetting.Add("Text", "x250 yp w27 h24 BackgroundFFFFFF")
-        Slot6 := GuiSetting.Add("Text", "x252 yp+3 w23 h20 Background000000")
-        Slot6.OnEvent("Click", (*) => SlotsClicked(6))
+        GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
+        Slot2 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+        Slot2.OnEvent("Click", (*) => SlotsClicked(2))
 
         ; -- Sound Beep Toggle --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Sound Beep Toggle")
         
-        GuiSetting.Add("Text", "x250 yp w27 h24 BackgroundFFFFFF")
-        Slot7 := GuiSetting.Add("Text", "x252 yp+3 w23 h20 Background000000")
-        Slot7.OnEvent("Click", (*) => SlotsClicked(7))
+        GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
+        Slot3 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+        Slot3.OnEvent("Click", (*) => SlotsClicked(3))
 
         ; -- Pressure Jump --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
@@ -561,30 +536,14 @@ SettingsGui() {
                 case 1:
                     global Slot1Bool := !Slot1Bool
                     Slot1.Opt(Slot1Bool ? "Background00FF00" : "Background000000")
+                    ShiftHolderStatus.Visible := (Slot1Bool ? true : false)
                     Slot1.Redraw
-                case 2:
-                    global Slot2Bool := !Slot2Bool
-                    Slot2.Opt(Slot2Bool ? "Background00FF00" : "Background000000")
-                    Slot2.Redraw
-                case 3:
-                    global Slot3Bool := !Slot3Bool
-                    Slot3.Opt(Slot3Bool ? "Background00FF00" : "Background000000")
-                    Slot3.Redraw
-                case 4:
-                    global Slot4Bool := !Slot4Bool
-                    Slot4.Opt(Slot4Bool ? "Background00FF00" : "Background000000")
-                    Slot4.Redraw
-                case 5:
-                    global Slot5Bool := !Slot5Bool
-                    Slot5.Opt(Slot5Bool ? "Background00FF00" : "Background000000")
-                    ShiftHolderStatus.Visible := (Slot5Bool ? true : false)
-                    Slot5.Redraw
                     
-                    if (!Slot5Bool && ShiftHolder) { ; if shift holder is still on but toggle is off, stop holding shift
+                    if (!Slot1Bool && ShiftHolder) { ; if shift holder is still on but toggle is off, stop holding shift
                         global ShiftHolder := false
                         Send "{LShift up}"
                     }
-                case 6:
+                case 2:
                     TargetFolder := A_ScriptDir "\clumsy"
                     ZipPath      := A_ScriptDir "\clumsy.zip"
 
@@ -592,10 +551,10 @@ SettingsGui() {
                         TrayTip("Downloading Clumsy", "Macro Downloader")
                         try {
                             Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", A_ScriptDir "\clumsy.zip")
-                            MsgBox("Automated installation succeded (why would you delete clumsy). Extract the zipped folder")
+                            MsgBox("Automated installation succeded. Extract the zipped folder")
                             return
                         } catch Error as err {
-                            MsgBox("Automated installation failed (why would you delete clumsy). Install clumsy 0.3 from the official website`n`nError: " err.Message`n`n)
+                            MsgBox("Automated installation failed. Install clumsy 0.3 from the official website`n`nError: " err.Message`n`n)
                             return
                         }
                     }
@@ -608,21 +567,21 @@ SettingsGui() {
                         return
                     }
 
-                    global Slot6Bool := !Slot6Bool
-                    Slot6.Opt(Slot6Bool ? "Background00FF00" : "Background000000")
-                    LagSwitchStatus.Visible := (Slot6Bool ? true : false)
-                    Slot6.Redraw
-                case 7:
-                    global Slot7Bool := !Slot7Bool
-                    Slot7.Opt(Slot7Bool ? "Background00FF00" : "Background000000")
-                    Slot7.Redraw
+                    global Slot2Bool := !Slot2Bool
+                    Slot2.Opt(Slot2Bool ? "Background00FF00" : "Background000000")
+                    LagSwitchStatus.Visible := (Slot2Bool ? true : false)
+                    Slot2.Redraw
+                case 3:
+                    global Slot3Bool := !Slot3Bool
+                    Slot3.Opt(Slot3Bool ? "Background00FF00" : "Background000000")
+                    Slot3.Redraw
             }
         }
         
 
         ; Credit in settings GUI
         GuiSetting.SetFont("s10 cWhite", "Consolas")
-        GuiSetting.Add("Text", "x0 y310 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.Add("Text", "x0 y300 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         SettingsGuiShow := 1 ; never make new help guis again
     }
