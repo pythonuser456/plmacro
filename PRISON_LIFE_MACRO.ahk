@@ -289,7 +289,7 @@ $*g:: {
     Send "/"
 }
 
-#HotIf IsChatting ; if you're chatting and you press enter or leftclick, activate the shift holder again
+#HotIf IsChatting
 *$Enter:: {
     global IsChatting := false
     
@@ -301,9 +301,20 @@ $*g:: {
 
 #HotIf IsCrouching
 *$c:: {
+    global ShiftHolder := true
+
+    Send "{Blind}c"
+
+    SetTimer(ShiftWhenStanding, 64)
+}
+ShiftWhenStanding() {
+    ShiftHolderStatus.Opt("Background00FF7F")
+    ShiftHolderStatus.Redraw()
+
+    Send "{LShift down}"
     global IsCrouching := false
 
-    Send "{LShift up}"
+    SetTimer(ShiftWhenStanding, 0)
 }
 #HotIf
 
