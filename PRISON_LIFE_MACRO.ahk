@@ -74,6 +74,11 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 
 ; -- Blatant Gun Macro --
 ~$*LButton:: {
+    if (Number(Guns.Value) > 10) { ; if the gun amount is more than 10, tell the user
+        MsgBox("The maximum amount of guns is 10")
+        return
+    }
+
     global GunDelay := 5
     global Guns, i
 
@@ -81,6 +86,10 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     while GetKeyState("LButton", "P")  {
         Loop Number(Guns.Value) {
             i += 1
+
+            if (i == 10) { ; if gun amount is 10, make i = 0 so ahk can swap to the 10th slot
+                i := 0
+            }
 
             Send "{Blind}{" i "}"
             DllCall("Sleep", "UInt", Number(ShootDelay.Value))
@@ -510,7 +519,7 @@ SettingsGui() {
 
         ; -- Pressure Jump --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+30 w330",  "Pressure Jump")
+        GuiSetting.Add("Text", "x60 yp+35 w330",  "Pressure Jump")
 
         GuiSetting.SetFont("s12 bold cBlack", "Consolas")
         DPI_Input := GuiSetting.AddEdit("x220 yp+3 w45 h20 0x200", 0)
