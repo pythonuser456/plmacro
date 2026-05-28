@@ -463,23 +463,24 @@ HelpGui() {
         GuiHelp.SetFont("s11 bold cWhite", "Consolas")
         GuiHelp.Add("Text", "xp yp+25 w330 Center",  "  ALT = LMB, R, T, G toggle")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "LMB = Laser people     ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center",  "R   = Shuffle Reload   ")
+        GuiHelp.Add("Text", "xp yp+15 wp Center", "R   = Shuffle Reload   ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", " T   = Lag Switch        ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "    G   = Pressure Jump        ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "F4  = Show/Minimize    ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "DEL = Close Macro      ")
+        GuiHelp.Add("Text", "xp yp+15 wp Center", "     O/P = Increase/Decrease Gun `n        Amount")
 
         ; -- Extra Info --
         GuiHelp.SetFont("s15 bold cWhite", "Tahoma") 
-        GuiHelp.Add("Text", "xp y185 wp Center", "Extra Info")
+        GuiHelp.Add("Text", "xp y215 wp Center", "Extra Info")
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
         GuiHelp.Add("Text", "xp yp+25 wp Center", "You can also press shift once to sprint by`n toggling Press Shift Once in the settings")
 
-        GuiHelp.Add("Text", "xp yp+35 wp Center", "To actually use the very fast weapon `nswap macro, you need to type in how many`n guns you have in the settings")
+        GuiHelp.Add("Text", "xp yp+35 wp Center", "To actually use the very fast weapon `n swap macro, you need to type in how many `n guns you have in the settings or use `n the O/P keybinds")
 
-        GuiHelp.Add("Text", "xp yp+45 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
+        GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
 
         GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
 
@@ -494,8 +495,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w330 h570")
-        WinSetRegion("0-0 w410 h580 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w330 h600")
+        WinSetRegion("0-0 w410 h610 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
