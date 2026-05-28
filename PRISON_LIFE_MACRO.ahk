@@ -23,6 +23,8 @@ GuiThing := ""
 GuiSetting := ""
 GuiHelp := ""
 i := 0
+GunAmountVar := 0
+Guns := {}
 
 Spin := 4000
 BaseDPI := 800
@@ -59,7 +61,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 *$r:: {
     global i, Guns
 
-    Loop Number(Guns.Value) {
+    Loop GunAmountVar {
         i += 1
 
         Send "{Blind}{" i "}"
@@ -74,7 +76,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 
 ; -- Blatant Gun Macro --
 ~$*LButton:: {
-    if (Number(Guns.Value) > 10) { ; if the gun amount is more than 10, tell the user
+    if (GunAmountVar > 10) { ; if the gun amount is more than 10, tell the user
         MsgBox("The maximum amount of guns is 10")
         return
     }
@@ -84,7 +86,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     while GetKeyState("LButton", "P")  {
-        Loop Number(Guns.Value) {
+        Loop GunAmountVar {
             i += 1
 
             if (i == 10) { ; if gun amount is 10, make i = 0 so ahk can swap to the 10th slot
@@ -100,7 +102,50 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     }
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
-#HotIf
+
+; Increase/decrease Gun Amount Shortcut
+*$o:: {
+    global GunsAmountStatus, GunAmountVar, Guns
+    GunAmountVar -= 1
+
+    if (GunAmountVar < 0) {
+        GunAmountVar := 0
+    } else if (GunAmountVar > 10) {
+        GunAmountVar := 0
+    }
+
+    GunsAmountStatus.Value := GunAmountVar
+    GunsAmountStatus.Redraw()
+
+    Guns.Value := GunAmountVar
+    if Type(Guns) == "Gui.Control" {
+        Guns.Redraw()
+    }
+
+    if Slot3Bool
+        SoundBeep(550, 20)
+}
+*$p:: {
+    global GunsAmountStatus, GunAmountVar, Guns
+    GunAmountVar += 1
+
+    if (GunAmountVar < 0) {
+        GunAmountVar := 0
+    } else if (GunAmountVar > 10) {
+       GunAmountVar := 0
+    }
+
+    GunsAmountStatus.Value := GunAmountVar
+    GunsAmountStatus.Redraw()
+
+    Guns.Value := GunAmountVar
+    if Type(Guns) == "Gui.Control" {
+        Guns.Redraw()
+    }
+
+    if Slot3Bool
+        SoundBeep(550, 20)
+}
 
 ; -- Lag Switcher --
 #HotIf WinExist("ahk_exe clumsy.exe") && Slot2Bool && ScriptActive
@@ -339,14 +384,14 @@ StopMacro() {
 
 ; -- Main GUI --
 MainGUI() {
-    global ShiftHolderStatus, GuiThing, LagSwitchStatus
+    global ShiftHolderStatus, GuiThing, LagSwitchStatus, GunAmountVar, GunsAmountStatus, Guns
 
     ; black thing
     GuiThing := Gui("-Caption +AlwaysOnTop")
     GuiThing.BackColor := "000000" ; black hex code
     WinSetRegion("0-0 w270 h65 r15-15", GuiThing.Hwnd)
 
-    ; shift holder gui
+    ; Shift Holder Gui
     GuiThing.SetFont("s7 bold cWhite", "Arial")
     ShiftHolderStatus := GuiThing.Add("Text", "x95 y0 w30 h15 Center 0x200 BackgroundFF0000 -0x100 0x1 Hidden", "SHIFT")
 
@@ -354,9 +399,9 @@ MainGUI() {
     GuiThing.SetFont("s7 bold cWhite", "Arial")
     LagSwitchStatus := GuiThing.Add("Text", "x75 y0 w15 h15 Center 0x200 BackgroundFF0000 -0x100 0x1 Hidden", LagSwitchTL)
 
-    ; title
+    ; Title
     GuiThing.SetFont("s12 bold cWhite", "Segoe UI")
-    GuiThing.Add("Text", "x75 y15 w150", "Prison Life Macro")
+    GuiThing.Add("Text", "x72 y14 w150", "Prison Life Macro")
 
     ; On/Off button
     GuiThing.SetFont("s23 bold cWhite", "Arial")
@@ -370,13 +415,19 @@ MainGUI() {
     GuiThing.SetFont("s8 bold cBlack", "Arial")
     GuiThing.Add("Text", "x145 y0 w30 h15 Center 0x200 BackgroundFFFFFF", "HELP").OnEvent("Click", (*) => HelpGui() )
 
-    ; settings button
+    ; Settings Button
     GuiThing.SetFont("s8 cWhite", "Segoe UI Symbol")
     GuiThing.Add("Text", "x175 y0 w20 h15 Center 0x200 Background00008B", Chr(0x2699) ).OnEvent("Click", (*) => SettingsGui() ) ; setting symbol
 
+    ; Guns To Swap Status
+    GuiThing.SetFont("s6 bold cWhite", "Arial")
+    GuiThing.Add("Text", "x115 y39 w100 h15 Center 0x200", "Guns to swap:")
+    GunsAmountStatus := GuiThing.Add("Text", "x200 y39 w10 h15 Center 0x200", 0)
+    global GunsAmountStatus
+
     ; Credit
-    GuiThing.SetFont("s5 bold cWhite", "Consolas")
-    GuiThing.Add("Text", "x80 y45 w100", "Made By @Idkwhattonamethis223 On Youtube")
+    GuiThing.SetFont("s3 bold cWhite", "Consolas")
+    GuiThing.Add("Text", "x90 y35 w130", "Made By @Idkwhattonamethis223 On Youtube")
 
     GuiThing.Show("w260 h50") ; shows the ui
 }
@@ -455,22 +506,27 @@ SettingsGui() {
     static SettingsGuiShow := 0
 
     if (SettingsGuiShow == 0) {
-        global GuiSetting, DPI_Input, Sens_Input
-        global GuiSetting := Gui("-Caption +AlwaysOnTop")
+        global GuiSetting, DPI_Input, Sens_Input, Guns, GunsAmountStatus, ShootDelay, GunAmountVar
+        GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
 
         ; Title for help GUI
         GuiSetting.SetFont("s25 bold cWhite", "Segoe UI")
         GuiSetting.Add("Text", "x0 y0 w330 Center", "Macro Settings")
-
+        
         ; -- Gun Amount Choose --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 y60 w330",  "Gun Amount")
         
         GuiSetting.SetFont("cBlack")
-        Guns := GuiSetting.AddEdit("x269 yp+3 w25 h25 0x200", 0)
-        global Guns
+        Guns := GuiSetting.AddEdit("x269 yp+3 w25 h25 0x200 +Number", GunAmountVar)
+        
+        GunAmountVar := Guns.Value
+        GunsAmountStatus.Value := GunAmountVar
 
+        Guns.Redraw()
+        GunsAmountStatus.Redraw()
+        
         ; -- Shoot Delay --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Shoot Delay")
@@ -479,8 +535,7 @@ SettingsGui() {
         GuiSetting.Add("Text", "xp+125 yp+10 w330",  "(milisecond)")
         
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ShootDelay := GuiSetting.AddEdit("x269 y93 w25 h25 0x200", 5)
-        global ShootDelay
+        ShootDelay := GuiSetting.AddEdit("x269 y93 w25 h25 0x200 +Number", 5)
 
         ; -- Reload Delay --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
@@ -490,7 +545,7 @@ SettingsGui() {
         GuiSetting.Add("Text", "xp+135 yp+10 w330",  "(milisecond)")
         
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ReloadDelay := GuiSetting.AddEdit("x269 y121 w25 h25 0x200", 0)
+        ReloadDelay := GuiSetting.AddEdit("x269 y121 w25 h25 0x200 +Number", 0)
         global ReloadDelay
         
         ; -- Shift Option --
@@ -522,8 +577,8 @@ SettingsGui() {
         GuiSetting.Add("Text", "x60 yp+35 w330",  "Pressure Jump")
 
         GuiSetting.SetFont("s12 bold cBlack", "Consolas")
-        DPI_Input := GuiSetting.AddEdit("x220 yp+3 w45 h20 0x200", 0)
-        Sens_Input := GuiSetting.AddEdit("x275 yp w37 h20 0x200", 0)
+        DPI_Input := GuiSetting.AddEdit("x220 yp+3 w45 h20 0x200 +Number", 0)
+        Sens_Input := GuiSetting.AddEdit("x275 yp w37 h20 0x200 +Number", 0)
 
         GuiSetting.SetFont("s12 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x225 yp+20 w330", "DPI")
@@ -537,6 +592,12 @@ SettingsGui() {
         HideSetting(*) {
             GuiSetting.Hide()
             global IsSettingsVisible := false
+
+            GunAmountVar := Guns.Value
+            GunsAmountStatus.Value := GunAmountVar
+
+            Guns.Redraw()
+            GunsAmountStatus.Redraw()
         }
 
         ; function for toggle
@@ -587,7 +648,6 @@ SettingsGui() {
             }
         }
         
-
         ; Credit in settings GUI
         GuiSetting.SetFont("s10 cWhite", "Consolas")
         GuiSetting.Add("Text", "x0 y300 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
@@ -596,6 +656,11 @@ SettingsGui() {
     }
 
     global IsSettingsVisible := !IsSettingsVisible
+    GunAmountVar := Guns.Value
+    GunsAmountStatus.Value := GunAmountVar
+
+    Guns.Redraw()
+    GunsAmountStatus.Redraw()
 
     ; Shows/closes help GUI
     if (IsSettingsVisible) {
