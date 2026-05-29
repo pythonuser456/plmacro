@@ -25,8 +25,6 @@ GuiHelp := ""
 i := 0
 GunAmountVar := 0
 Guns := {}
-ReloadDelay := 5
-ShootDelay := 5
 
 Spin := 4000
 BaseDPI := 800
