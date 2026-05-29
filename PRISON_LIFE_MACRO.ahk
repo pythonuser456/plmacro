@@ -14,7 +14,7 @@ Slot1Bool := false
 Slot2Bool := false
 Slot3Bool := false
 IsHelpVisible := false
-IsSettingsVisible := false
+IsSettingsVisible := true
 IsCrouching := false
 IsChatting := false
 IsLagging := false
@@ -25,6 +25,8 @@ GuiHelp := ""
 i := 0
 GunAmountVar := 0
 Guns := {}
+ReloadDelay := 5
+ShootDelay := 5
 
 Spin := 4000
 BaseDPI := 800
@@ -42,9 +44,10 @@ if not A_IsAdmin {
 }
 
 MainGui()
+SettingsGui()
 OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 
-; -- Toggle LMB, R, T, G--
+; -- Toggle LMB, R, T, G, O, P--
 *$Alt:: {
     global ScriptActive := !ScriptActive
     
