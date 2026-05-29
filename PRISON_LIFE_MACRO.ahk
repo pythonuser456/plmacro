@@ -24,7 +24,6 @@ GuiSetting := ""
 GuiHelp := ""
 i := 0
 GunAmountVar := 0
-Guns := {}
 
 Spin := 4000
 BaseDPI := 800
