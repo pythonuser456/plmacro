@@ -171,8 +171,7 @@ $*t:: {
         
         if Slot3Bool
             SoundBeep(400, 20)
-
-        ;KeyWait "t"
+        
         return
     }
 
@@ -191,8 +190,6 @@ $*t:: {
 
     if Slot3Bool
         SoundBeep(550, 20)
-    
-    ;KeyWait "t" 
 }
 LagSwitchCount() {
     global IsLagging, LagSwitchTL
@@ -675,22 +672,22 @@ SettingsGui() {
                         Send "{LShift up}"
                     }
                 case 2:
-                    TargetFolder := A_ScriptDir "\clumsy"
-                    ZipPath      := A_ScriptDir "\clumsy.zip"
+                    TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a.zip"
+                    ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip.zip"
 
                     if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
-                        TrayTip("Downloading Clumsy", "Macro Downloader")
+                        TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Downloader")
                         try {
-                            Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", A_ScriptDir "\clumsy.zip")
-                            MsgBox("Automated installation succeded. Extract the zipped folder")
+                            Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", ZipPath)
+                            MsgBox("Automated installation success. Extract the zip folder")
                             return
                         } catch Error as err {
-                            MsgBox("Automated installation failed. Install clumsy 0.3 from the official website`n`nError: " err.Message`n`n)
+                            MsgBox("Automated installation failed. Install clumsy-0.3-win64-a.zip bit from https://jagt.github.io/clumsy/download `n`n Error: " err.Message`n`n)
                             return
                         }
                     }
                     else if !FileExist(TargetFolder) {
-                        MsgBox("Extract the zipped folder named clumsy")
+                        MsgBox("Extract the clumsy zip folder")
                         return
                     }  
                     else if (!WinExist("ahk_exe clumsy.exe") && FileExist(TargetFolder)) { ; if clumsy isnt opened, msgbox would tell you to open clumsy manually
