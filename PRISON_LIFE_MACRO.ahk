@@ -119,9 +119,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     GunsAmountStatus.Redraw()
 
     Guns.Value := GunAmountVar
-    if Type(Guns) == "Gui.Control" {
-        Guns.Redraw()
-    }
+    Guns.Redraw()
 
     if Slot3Bool
         SoundBeep(550, 20)
@@ -140,9 +138,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     GunsAmountStatus.Redraw()
 
     Guns.Value := GunAmountVar
-    if Type(Guns) == "Gui.Control" {
-        Guns.Redraw()
-    }
+    Guns.Redraw()
 
     if Slot3Bool
         SoundBeep(550, 20)
