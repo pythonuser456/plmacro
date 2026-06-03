@@ -172,7 +172,7 @@ $*t:: {
         if Slot3Bool
             SoundBeep(400, 20)
 
-        KeyWait "t"
+        ;KeyWait "t"
         return
     }
 
@@ -192,7 +192,7 @@ $*t:: {
     if Slot3Bool
         SoundBeep(550, 20)
     
-    KeyWait "t" 
+    ;KeyWait "t" 
 }
 LagSwitchCount() {
     global IsLagging, LagSwitchTL
@@ -258,6 +258,63 @@ $*g:: {
 
     global IsCrouching := false
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
+}
+
+; -- No Clip --
+$*b:: {
+    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+
+    global ShiftHolder := false
+    global IsCrouching := !IsCrouching
+    global IsChatting := false
+    Send "{LShift up}"
+    ShiftHolderStatus.Opt("BackgroundFF0000")
+    ShiftHolderStatus.Redraw()
+
+    Send "{Blind}c"
+
+    DllCall("Sleep", "UInt", 25)
+
+    freeze(1) ; starts freezing roblox
+
+    DllCall("Sleep", "UInt", 750)
+
+    freeze(2) ; stops freezing roblox
+
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
+}
+freeze(FreezeChoice) {
+    targetProcess := "RobloxPlayerBeta.exe"
+    pid := ProcessExist(targetProcess)
+    
+    if (!pid) {
+        ToolTip("Roblox not found")
+        SetTimer(() => ToolTip(), -1500)
+        return
+    }
+    
+    switch(FreezeChoice) {
+        case 1:
+            ProcessSuspend(pid)
+        case 2:
+            ProcessResume(pid)
+    }
+    
+    SetTimer(() => ToolTip(), -1500)
+}
+ProcessSuspend(pid) {
+    targetHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", 0, "UInt", pid, "Ptr")
+    if (targetHandle) {
+        DllCall("ntdll\NtSuspendProcess", "Ptr", targetHandle)
+        DllCall("CloseHandle", "Ptr", targetHandle)
+    }
+}
+ProcessResume(pid) {
+    targetHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", 0, "UInt", pid, "Ptr")
+    if (targetHandle) {
+        DllCall("ntdll\NtResumeProcess", "Ptr", targetHandle)
+        DllCall("CloseHandle", "Ptr", targetHandle)
+    }
 }
 #HotIf
 
@@ -466,23 +523,26 @@ HelpGui() {
         GuiHelp.Add("Text", "xp yp+15 wp Center", "R   = Shuffle Reload   ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", " T   = Lag Switch        ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "    G   = Pressure Jump        ")
+        GuiHelp.Add("Text", "xp yp+15 wp Center", " B   = No Clip           ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "F4  = Show/Minimize    ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "DEL = Close Macro      ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "     O/P = Increase/Decrease Gun `n        Amount")
 
         ; -- Extra Info --
         GuiHelp.SetFont("s15 bold cWhite", "Tahoma") 
-        GuiHelp.Add("Text", "xp y215 wp Center", "Extra Info")
+        GuiHelp.Add("Text", "xp y230 wp Center", "Extra Info")
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
         GuiHelp.Add("Text", "xp yp+25 wp Center", "You can also press shift once to sprint by`n toggling Press Shift Once in the settings")
 
-        GuiHelp.Add("Text", "xp yp+35 wp Center", "To actually use the very fast weapon `n swap macro, you need to type in how many `n guns you have in the settings or use `n the O/P keybinds")
+        GuiHelp.Add("Text", "xp yp+35 wp Center", "To use the very fast weapon `n swap macro, you need to type in how many `n guns you have in the settings or use `n the O/P keybinds")
 
         GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
 
         GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
+
+        GuiHelp.Add("Text", "xp yp+45 wp Center", "To no clip, you need to face a thin wall `n (around 0.9 studs) and press the no clip `n keybind (spencer macro utility isnt `n needed for this btw)")
 
         ; Credit in help GUI
         GuiHelp.SetFont("s10 cWhite", "Consolas")
@@ -495,8 +555,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w330 h600")
-        WinSetRegion("0-0 w410 h610 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w330 h690")
+        WinSetRegion("0-0 w410 h700 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
