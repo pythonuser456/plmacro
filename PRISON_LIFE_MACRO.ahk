@@ -29,7 +29,6 @@ Spin := 4000
 BaseDPI := 800
 BaseSens := 0.36
 
-
 ; -- Main GUI Call --
 if not A_IsAdmin {
     try {
