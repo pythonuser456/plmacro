@@ -461,7 +461,7 @@ MainGUI() {
     global StatusLabel := GuiThing.Add("Text", "x0 y0 w60 h50 0x200 BackgroundFF0000 -0x100 0x1", "OFF")
 
     ; X button
-    GuiThing.SetFont("s10 bold cWhite", "Arial")
+    GuiThing.SetFont("s10 cWhite", "Arial")
     GuiThing.Add("Text", "x195 y0 w20 h15 Center 0x200 BackgroundFF0000", "X").OnEvent("Click", (*) => StopMacro() )
 
     ; Help button
@@ -469,9 +469,9 @@ MainGUI() {
     GuiThing.Add("Text", "x145 y0 w30 h15 Center 0x200 BackgroundFFFFFF", "HELP").OnEvent("Click", (*) => HelpGui() )
 
     ; Settings Button
-    GuiThing.SetFont("s8 cWhite", "Segoe UI Symbol")
+    GuiThing.SetFont("s10 cWhite", "Segoe UI Symbol")
     GuiThing.Add("Text", "x175 y0 w20 h15 Center 0x200 Background00008B", Chr(0x2699) ).OnEvent("Click", (*) => SettingsGui() ) ; setting symbol
-
+    
     ; Guns To Swap Status
     GuiThing.SetFont("s6 bold cWhite", "Arial")
     GuiThing.Add("Text", "x115 y39 w100 h15 Center 0x200", "Guns to swap:")
