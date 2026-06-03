@@ -4,6 +4,7 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ProcessSetPriority "High"
+SetControlDelay(-1)
 
 ; -- Variables --
 ScriptActive := false
@@ -32,10 +33,11 @@ BaseSens := 0.36
 ; -- Main GUI Call --
 if not A_IsAdmin {
     try {
-        Run('*RunAs "' . A_ScriptFullPath . '"')
-        Sleep(3000)
-    } catch {
-        MsgBox("Admin privileges denied. This might make your experience worse.")
+        ; Removed the dot (.) concatenation for clean v2 string handling
+        Run('*RunAs "' A_ScriptFullPath '"')
+        ExitApp() ; Immediately closes the non-admin version
+    } catch as err { 
+        MsgBox("Admin privileges denied. Background macros will fail while Roblox is open.") 
     }
 }
 
@@ -117,9 +119,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     GunsAmountStatus.Redraw()
 
     Guns.Value := GunAmountVar
-    if Type(Guns) == "Gui.Control" {
-        Guns.Redraw()
-    }
+    Guns.Redraw()
 
     if Slot3Bool
         SoundBeep(550, 20)
@@ -138,9 +138,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     GunsAmountStatus.Redraw()
 
     Guns.Value := GunAmountVar
-    if Type(Guns) == "Gui.Control" {
-        Guns.Redraw()
-    }
+    Guns.Redraw()
 
     if Slot3Bool
         SoundBeep(550, 20)
@@ -152,8 +150,6 @@ $*t:: {
     global IsLagging := !IsLagging
     global LagSwitchTL
     
-    SetControlDelay(50)
-
     ; IF TURNING OFF
     if (!IsLagging) {
         SetTimer(LagSwitchCount, 0)
@@ -170,7 +166,6 @@ $*t:: {
         
         if Slot3Bool
             SoundBeep(400, 20)
-        
         return
     }
 
@@ -501,7 +496,7 @@ HelpGui() {
     
         ; X button for help GUI
         GuiHelp.SetFont("s13 bold cWhite", "Arial")
-        GuiHelp.Add("Text", "x300 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
+        GuiHelp.Add("Text", "x305 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
 
         HideHelp(*) {
             GuiHelp.Hide()
@@ -534,7 +529,7 @@ HelpGui() {
 
         GuiHelp.Add("Text", "xp yp+35 wp Center", "To use the very fast weapon `n swap macro, you need to type in how many `n guns you have in the settings or use `n the O/P keybinds")
 
-        GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
+        GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch feature `n you have to wait until a window called clumsy pops up. `n If the auto configs fail, set clumsy's settings manually as Filtering: outbound and udp. Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100. And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100")
 
         GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
 
@@ -551,8 +546,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w330 h690")
-        WinSetRegion("0-0 w410 h700 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w350 h690")
+        WinSetRegion("0-0 w415 h700 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -671,27 +666,61 @@ SettingsGui() {
                         Send "{LShift up}"
                     }
                 case 2:
-                    TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a.zip"
-                    ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip.zip"
 
+                    ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip"
+                    TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a"
+                    ClumsyPath   := TargetFolder "\clumsy.exe"
+                    FilterConfig := "outbound and udp"
+
+                    ; if clumsy isnt installed
                     if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
-                        TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Downloader")
+                        TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Installer")
                         try {
                             Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", ZipPath)
-                            MsgBox("Automated installation success. Extract the zip folder")
-                            return
+                            MsgBox("Automated installation success")
                         } catch Error as err {
                             MsgBox("Automated installation failed. Install clumsy-0.3-win64-a.zip bit from https://jagt.github.io/clumsy/download `n`n Error: " err.Message`n`n)
                             return
                         }
                     }
-                    else if !FileExist(TargetFolder) {
-                        MsgBox("Extract the clumsy zip folder")
-                        return
-                    }  
-                    else if (!WinExist("ahk_exe clumsy.exe") && FileExist(TargetFolder)) { ; if clumsy isnt opened, msgbox would tell you to open clumsy manually
-                        MsgBox("Open clumsy 0.3 and set up the settings manually (instructions in the big fat help button)")
-                        return
+                    ; auto extract
+                    if !FileExist(TargetFolder) {
+                        TrayTip("Extracting Clumsy files", "Macro Installer")
+                        try {
+                            DirCreate(TargetFolder)
+                            ShellObj := ComObject("Shell.Application")
+                            ZipFolder := ShellObj.NameSpace(ZipPath)
+                            DestFolder := ShellObj.NameSpace(TargetFolder)
+
+                            if (ZipFolder && DestFolder) {
+                                DestFolder.CopyHere(ZipFolder.Items, 4 | 16)
+                                MsgBox("Extraction success. Make sure you're not touching your keyboard nor mouse for a few seconds")
+                                Sleep(800)
+                            }
+                        } catch Error as err {
+                            MsgBox("Extraction failed. Extract the file manually `n`nError:" err.Message)
+                            return
+                        }
+                    }
+                    if (!WinExist("ahk_exe clumsy.exe") && FileExist(ClumsyPath)) {
+                        ProcessClose("clumsy.exe")
+                        Sleep(200)
+
+                        Run('*RunAs "' ClumsyPath '" --filter "' FilterConfig '" --lag on --lag-time 5000 --drop on --drop-chance 100 --throttle on --throttle-chance 100 --throttle-frame 1000')
+
+                        ; turns off lag switch
+                        WinWait("ahk_exe clumsy.exe")
+                        Sleep(100)
+                        Try {
+                            ControlSend("{Space}", "Button2", "ahk_exe clumsy.exe")
+                        } catch {
+                            ControlSend("{Space}", "Button2", "ahk_exe clumsy.exe")
+                        }
+                         
+                    } else {
+                        if WinExist("ahk_exe clumsy.exe") {
+                            WinClose("ahk_exe clumsy.exe")
+                        }
                     }
 
                     global Slot2Bool := !Slot2Bool
