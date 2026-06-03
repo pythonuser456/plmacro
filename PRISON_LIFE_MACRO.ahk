@@ -4,6 +4,8 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ProcessSetPriority "High"
+DetectHiddenWindows(true)
+SetControlDelay(-1)
 
 ; -- Variables --
 ScriptActive := false
@@ -152,7 +154,7 @@ $*t:: {
     global IsLagging := !IsLagging
     global LagSwitchTL
     
-    SetControlDelay(50)
+    ;SetControlDelay(50)
 
     ; IF TURNING OFF
     if (!IsLagging) {
@@ -171,6 +173,7 @@ $*t:: {
         if Slot3Bool
             SoundBeep(400, 20)
         
+        DllCall("Winmm\timeEndPeriod", "UInt", 1)
         return
     }
 
@@ -204,6 +207,7 @@ LagSwitchCount() {
     if (LagSwitchTL <= 0) {
         IsLagging := false
         SetTimer(LagSwitchCount, 0) ; Turn off timer
+        Sleep(200)
         Try {
             ControlClick("Button2", "ahk_exe clumsy.exe")
         } catch {
@@ -671,33 +675,65 @@ SettingsGui() {
                         Send "{LShift up}"
                     }
                 case 2:
-                    TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a.zip"
-                    ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip.zip"
+                    global Slot2Bool := !Slot2Bool
+                    Slot2.Opt(Slot2Bool ? "Background00FF00" : "Background000000")
+                    LagSwitchStatus.Visible := (Slot2Bool ? true : false)
+                    Slot2.Redraw
 
+                    ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip"
+                    TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a"
+                    ClumsyPath   := TargetFolder "\clumsy.exe"
+                    FilterConfig := "outbound and udp"
+
+                    ; if clumsy isnt installed
                     if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
-                        TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Downloader")
+                        TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Installer")
                         try {
                             Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", ZipPath)
-                            MsgBox("Automated installation success. Extract the zip folder")
-                            return
+                            MsgBox("Automated installation success")
                         } catch Error as err {
                             MsgBox("Automated installation failed. Install clumsy-0.3-win64-a.zip bit from https://jagt.github.io/clumsy/download `n`n Error: " err.Message`n`n)
                             return
                         }
                     }
-                    else if !FileExist(TargetFolder) {
-                        MsgBox("Extract the clumsy zip folder")
-                        return
-                    }  
-                    else if (!WinExist("ahk_exe clumsy.exe") && FileExist(TargetFolder)) { ; if clumsy isnt opened, msgbox would tell you to open clumsy manually
-                        MsgBox("Open clumsy 0.3 and set up the settings manually (instructions in the big fat help button)")
-                        return
-                    }
+                    ; auto extract
+                    if !FileExist(TargetFolder) {
+                        TrayTip("Extracting Clumsy files", "Macro Installer")
+                        try {
+                            DirCreate(TargetFolder)
+                            ShellObj := ComObject("Shell.Application")
+                            ZipFolder := ShellObj.NameSpace(ZipPath)
+                            DestFolder := ShellObj.NameSpace(TargetFolder)
 
-                    global Slot2Bool := !Slot2Bool
-                    Slot2.Opt(Slot2Bool ? "Background00FF00" : "Background000000")
-                    LagSwitchStatus.Visible := (Slot2Bool ? true : false)
-                    Slot2.Redraw
+                            if (ZipFolder && DestFolder) {
+                                DestFolder.CopyHere(ZipFolder.Items, 4 | 16)
+                                MsgBox("Extraction success. Make sure you're not touching your keyboard or mouse for a few seconds")
+                                Sleep(800)
+                            }
+                        } catch Error as err {
+                            MsgBox("Extraction failed. Extract the file manually `n`nError:" err.Message)
+                            return
+                        }
+                    }
+                    if (!WinExist("ahk_exe clumsy.exe") && FileExist(ClumsyPath) && Slot2Bool) {
+                        ProcessClose("clumsy.exe")
+                        Sleep(200)
+
+                        Run(ClumsyPath ' --filter "' FilterConfig '" --lag on --lag-time 5000 --drop on --drop-chance 100.0 --throttle on --throttle-chance 100.0 --throttle-frame 1000')
+
+                        ; turns off lag switch
+                        WinWait("ahk_exe clumsy.exe")
+                        Sleep(30)
+                        Try {
+                            ControlClick("Button2", "ahk_exe clumsy.exe")
+                        } catch {
+                            ControlClick("Button2", "ahk_exe clumsy.exe")
+                        }
+                    } else {
+                        if WinExist("ahk_exe clumsy.exe") {
+                            WinClose("ahk_exe clumsy.exe")
+                        }
+                    }
                 case 3:
                     global Slot3Bool := !Slot3Bool
                     Slot3.Opt(Slot3Bool ? "Background00FF00" : "Background000000")
@@ -727,3 +763,4 @@ SettingsGui() {
         GuiSetting.Hide()
     }
 }
+
