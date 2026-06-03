@@ -505,7 +505,7 @@ HelpGui() {
     
         ; X button for help GUI
         GuiHelp.SetFont("s13 bold cWhite", "Arial")
-        GuiHelp.Add("Text", "x300 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
+        GuiHelp.Add("Text", "x305 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
 
         HideHelp(*) {
             GuiHelp.Hide()
@@ -538,7 +538,7 @@ HelpGui() {
 
         GuiHelp.Add("Text", "xp yp+35 wp Center", "To use the very fast weapon `n swap macro, you need to type in how many `n guns you have in the settings or use `n the O/P keybinds")
 
-        GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch, download `n clumsy 0.3 64 bit and open your `n clumsy and set your settings as Filtering: `n outbound and udp. Check the lag box and set it `n to 5000 ms delay. Check drop and throttle `n and change both of the chances to 100. And `n set throttle's timeframe ms to 1000")
+        GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch feature `n you have to wait until a window called clumsy pops up. `n If the auto configs fail, set clumsy's settings manually as Filtering: outbound and udp. Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100. And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100")
 
         GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
 
@@ -555,8 +555,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w330 h690")
-        WinSetRegion("0-0 w410 h700 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w350 h690")
+        WinSetRegion("0-0 w415 h700 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -707,7 +707,7 @@ SettingsGui() {
 
                             if (ZipFolder && DestFolder) {
                                 DestFolder.CopyHere(ZipFolder.Items, 4 | 16)
-                                MsgBox("Extraction success. Make sure you're not touching your keyboard or mouse for a few seconds")
+                                MsgBox("Extraction success. Make sure you're not touching your keyboard nor mouse for a few seconds")
                                 Sleep(800)
                             }
                         } catch Error as err {
@@ -763,4 +763,3 @@ SettingsGui() {
         GuiSetting.Hide()
     }
 }
-
