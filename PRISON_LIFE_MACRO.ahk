@@ -662,8 +662,15 @@ SettingsGui() {
                     ShiftHolderStatus.Visible := (Slot1Bool ? true : false)
                     Slot1.Redraw
                     
-                    if (!Slot1Bool && ShiftHolder) { ; if shift holder is still on but toggle is off, stop holding shift
+                    ; if shift holder is still on but toggle is off, stop holding shift
+                    if (!Slot1Bool && ShiftHolder) {
                         global ShiftHolder := false
+                        global IsCrouching := false
+                        global IsChatting  := false
+
+                        ShiftHolderStatus.Opt("BackgroundFF0000")
+                        ShiftHolderStatus.Redraw()
+
                         Send "{LShift up}"
                     }
                 case 2:
