@@ -25,6 +25,7 @@ GuiSetting := ""
 GuiHelp := ""
 i := 0
 GunAmountVar := 0
+ClumsyIsOpen := false
 
 Spin := 4000
 BaseDPI := 800
@@ -666,11 +667,22 @@ SettingsGui() {
                         Send "{LShift up}"
                     }
                 case 2:
-
                     ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip"
                     TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a"
                     ClumsyPath   := TargetFolder "\clumsy.exe"
                     FilterConfig := "outbound and udp"
+
+                    if (Slot2Bool) {
+                        if WinExist("ahk_exe clumsy.exe") {
+                            ProcessClose("clumsy.exe")
+                        }
+
+                        global Slot2Bool := false
+                        Slot2.Opt("Background000000")
+                        LagSwitchStatus.Visible := false
+                        Slot2.Redraw()
+                        return
+                    }
 
                     ; if clumsy isnt installed
                     if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
@@ -683,6 +695,7 @@ SettingsGui() {
                             return
                         }
                     }
+
                     ; auto extract
                     if !FileExist(TargetFolder) {
                         TrayTip("Extracting Clumsy files", "Macro Installer")
