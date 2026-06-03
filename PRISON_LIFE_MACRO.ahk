@@ -710,13 +710,12 @@ SettingsGui() {
 
                         ; turns off lag switch
                         WinWait("ahk_exe clumsy.exe")
-                        Sleep(100)
+                        Sleep(20)
                         Try {
-                            ControlSend("{Space}", "Button2", "ahk_exe clumsy.exe")
+                            ControlClick("Button2", "ahk_exe clumsy.exe")
                         } catch {
-                            ControlSend("{Space}", "Button2", "ahk_exe clumsy.exe")
+                            ControlClick("Button2", "ahk_exe clumsy.exe")
                         }
-                         
                     } else {
                         if WinExist("ahk_exe clumsy.exe") {
                             WinClose("ahk_exe clumsy.exe")
