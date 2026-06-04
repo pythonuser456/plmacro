@@ -244,9 +244,11 @@ $*g:: {
         if (A_TickCount - start > 200)
             break
         DllCall("mouse_event", "UInt", 0x0001, "Int", X, "Int", 0, "UInt", 0, "UPtr", 0)
-
-        DllCall("Sleep", "UInt", 4)
     }
+
+    freeze(1) ; freezes roblox
+    DllCall("Sleep", "UInt", 200)
+    freeze(2) ; stops freezing
 
     global IsCrouching := false
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
@@ -631,7 +633,7 @@ SettingsGui() {
 
         GuiSetting.SetFont("s12 bold cBlack", "Consolas")
         DPI_Input := GuiSetting.AddEdit("x220 yp+3 w45 h20 0x200 +Number", 0)
-        Sens_Input := GuiSetting.AddEdit("x275 yp w37 h20 0x200 +Number", 0)
+        Sens_Input := GuiSetting.AddEdit("x275 yp w37 h20 0x200", 0)
 
         GuiSetting.SetFont("s12 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x225 yp+20 w330", "DPI")
