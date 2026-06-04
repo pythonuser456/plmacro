@@ -25,7 +25,6 @@ GuiSetting := ""
 GuiHelp := ""
 i := 0
 GunAmountVar := 0
-ClumsyIsOpen := false
 
 Spin := 4000
 BaseDPI := 800
@@ -186,6 +185,7 @@ $*t:: {
     if Slot3Bool
         SoundBeep(550, 20)
 }
+
 LagSwitchCount() {
     global IsLagging, LagSwitchTL
     if (!IsLagging) {
@@ -270,6 +270,7 @@ $*b:: {
 
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
+
 freeze(FreezeChoice) {
     targetProcess := "RobloxPlayerBeta.exe"
     pid := ProcessExist(targetProcess)
@@ -289,6 +290,7 @@ freeze(FreezeChoice) {
     
     SetTimer(() => ToolTip(), -1500)
 }
+
 ProcessSuspend(pid) {
     targetHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", 0, "UInt", pid, "Ptr")
     if (targetHandle) {
@@ -296,6 +298,7 @@ ProcessSuspend(pid) {
         DllCall("CloseHandle", "Ptr", targetHandle)
     }
 }
+
 ProcessResume(pid) {
     targetHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", 0, "UInt", pid, "Ptr")
     if (targetHandle) {
@@ -351,6 +354,7 @@ ProcessResume(pid) {
     Send "{LShift up}"
     Send "/"
 }
+
 *$/:: {
     global ShiftHolder := false
     global IsChatting := true
@@ -372,6 +376,7 @@ ProcessResume(pid) {
     
     Send("{Enter}")
 }
+
 ~$*LButton:: {
     global IsChatting := false
 }
@@ -384,6 +389,7 @@ ProcessResume(pid) {
 
     SetTimer(ShiftWhenStanding, 64)
 }
+
 ShiftWhenStanding() {
     ShiftHolderStatus.Opt("Background00FF7F")
     ShiftHolderStatus.Redraw()
@@ -414,15 +420,16 @@ $*F4:: {
 }
 
 ; -- Panic Exit --
-$*Del:: {
-    StopMacro()
-}
+$*Del::StopMacro()
 
 ; -- Function to kill the macro --
 StopMacro() {
     Send "{LShift up}"
-    Run "cmd.exe /c taskkill /f /im AutoHotkey64.exe", , "Hide"
-    Run "cmd.exe /c taskkill /f /im AutoHotkey.exe", , "Hide"
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
+
+    try ProcessClose("AutoHotkey64.exe")
+    try ProcessClose("AutoHotkey.exe")
+
     ExitApp()
 }
 
