@@ -220,13 +220,12 @@ LagSwitchCount() {
 $*g:: {
     if Slot3Bool
         SoundBeep(550, 20)
-    
-    if (DPI_Input.Value == 0 or Sens_Input.Value == 0) {
-        MsgBox("Please put your mouse DPI / Roblox Sensitivity in the settings")
+    if (Sens_Input.Value == 0) {
+        MsgBox("Put your Roblox Sensitivity in the settings")
         return
     }
 
-    X := Round((Spin * BaseDPI * BaseSens) / (Number(DPI_Input.Value) * Number(Sens_Input.Value)))
+    global Turn180Var := 1750.0 / Number(Sens_Input.Value)
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 
     Send "{Blind}c"
@@ -235,20 +234,14 @@ $*g:: {
     Send "{Space down}"
     DllCall("Sleep", "UInt", 60)
     Send "{Space up}"
-
-    DllCall("Sleep", "UInt", 4)
-
-    start := A_TickCount
-
+    
+    StartTime := A_TickCount 
     Loop {
-        if (A_TickCount - start > 200)
+        if (A_TickCount - StartTime > 200)
             break
-        DllCall("mouse_event", "UInt", 0x0001, "Int", X, "Int", 0, "UInt", 0, "UPtr", 0)
+        
+        DllCall("user32\mouse_event", "UInt", 0x0001, "Int", Turn180Var, "Int", 0, "UInt", 0, "Ptr", 0)
     }
-
-    freeze(1) ; freezes roblox
-    DllCall("Sleep", "UInt", 200)
-    freeze(2) ; stops freezing
 
     global IsCrouching := false
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
@@ -632,12 +625,10 @@ SettingsGui() {
         GuiSetting.Add("Text", "x60 yp+35 w330",  "Pressure Jump")
 
         GuiSetting.SetFont("s12 bold cBlack", "Consolas")
-        DPI_Input := GuiSetting.AddEdit("x220 yp+3 w45 h20 0x200 +Number", 0)
-        Sens_Input := GuiSetting.AddEdit("x275 yp w37 h20 0x200", 0)
+        Sens_Input := GuiSetting.AddEdit("x260 yp+3 w45 h20", 0)
 
         GuiSetting.SetFont("s12 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x225 yp+20 w330", "DPI")
-        GuiSetting.Add("Text", "x275 yp w330", "SENS")
+        GuiSetting.Add("Text", "x225 yp+20 w330", "ROBLOX SENS")
 
         ; X button in settings GUI
         GuiSetting.SetFont("s13 bold cWhite", "Arial")
