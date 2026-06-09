@@ -266,11 +266,22 @@ $*b:: {
 
     freeze(1) ; starts freezing roblox 
 
-    DllCall("Sleep", "UInt", 650)
+    DllCall("Sleep", "UInt", 70)
 
     freeze(2) ; stops freezing roblox
 
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
+}
+
+$*y:: {
+    global IsFrozen := !IsFrozen
+    
+    ; Freeze/Unfreeze
+    if (IsFrozen) {
+        freeze(1)
+    } else {
+        freeze(2)
+    }
 }
 
 ; -- Freeze Functions --
@@ -286,13 +297,9 @@ freeze(FreezeChoice) {
     
     switch(FreezeChoice) {
         case 1:
-            if ToggleProcessState(pid, true) {
-                ;ToolTip("Suspend")
-            }
+            ToggleProcessState(pid, true)
         case 2:
-            if ToggleProcessState(pid, false) {
-                ;ToolTip("Resume")
-            }
+            ToggleProcessState(pid, false)
     }
     
     SetTimer(() => ToolTip(), -1500)
@@ -318,6 +325,16 @@ ToggleProcessState(pid, Freeze) {
     ; Clean Up
     DllCall("Kernel32.dll\CloseHandle", "Ptr", hProcess)
     return true
+}
+
+FreezeCount() { ; useless function
+    global FreezeTL
+    FreezeTL -= 1
+
+    if (FreezeTL <= 0) {
+        freeze(2)
+        SetTimer(FreezeCount, 0)
+    }
 }
 #HotIf
 
@@ -526,13 +543,14 @@ HelpGui() {
         GuiHelp.Add("Text", "xp yp+15 wp Center", " T   = Lag Switch        ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "    G   = Pressure Jump        ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", " B   = No Clip           ")
+        GuiHelp.Add("Text", "xp yp+15 wp Center", "       Y   = Freeze Roblox           ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "F4  = Show/Minimize    ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "DEL = Close Macro      ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "     O/P = Increase/Decrease Gun `n        Amount")
 
         ; -- Extra Info --
         GuiHelp.SetFont("s15 bold cWhite", "Tahoma") 
-        GuiHelp.Add("Text", "xp y230 wp Center", "Extra Info")
+        GuiHelp.Add("Text", "xp y245 wp Center", "Extra Info")
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
@@ -557,8 +575,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w350 h690")
-        WinSetRegion("0-0 w415 h700 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w350 h700")
+        WinSetRegion("0-0 w415 h710 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
