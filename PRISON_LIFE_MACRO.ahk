@@ -771,11 +771,11 @@ SettingsGui() {
                     global Slot2Bool := !Slot2Bool
                     Slot2.Opt(Slot2Bool ? "Background00FF00" : "Background000000")
                     LagSwitchStatus.Visible := (Slot2Bool ? true : false)
-                    Slot2.Redraw
+                    Slot2.Redraw()
                 case 3:
                     global Slot3Bool := !Slot3Bool
                     Slot3.Opt(Slot3Bool ? "Background00FF00" : "Background000000")
-                    Slot3.Redraw
+                    Slot3.Redraw()
             }
         }
         
