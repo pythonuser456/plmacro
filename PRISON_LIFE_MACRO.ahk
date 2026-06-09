@@ -19,12 +19,18 @@ IsSettingsVisible := true
 IsCrouching := false
 IsChatting := false
 IsLagging := false
+IsFrozen := false
 LagSwitchTL := 0
+FreezeTL := 0
 GuiThing := ""
 GuiSetting := ""
 GuiHelp := ""
 i := 0
 GunAmountVar := 0
+
+Spin := 4000
+BaseDPI := 800
+BaseSens := 0.36
 
 ; -- Main GUI Call --
 if not A_IsAdmin {
@@ -256,17 +262,18 @@ $*b:: {
 
     Send "{Blind}c"
 
-    DllCall("Sleep", "UInt", 25)
+    ;DllCall("Sleep", "UInt", 25)
 
-    freeze(1) ; starts freezing roblox
+    freeze(1) ; starts freezing roblox 
 
-    DllCall("Sleep", "UInt", 750)
+    DllCall("Sleep", "UInt", 650)
 
     freeze(2) ; stops freezing roblox
 
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
+; -- Freeze Functions --
 freeze(FreezeChoice) {
     targetProcess := "RobloxPlayerBeta.exe"
     pid := ProcessExist(targetProcess)
@@ -279,28 +286,38 @@ freeze(FreezeChoice) {
     
     switch(FreezeChoice) {
         case 1:
-            ProcessSuspend(pid)
+            if ToggleProcessState(pid, true) {
+                ;ToolTip("Suspend")
+            }
         case 2:
-            ProcessResume(pid)
+            if ToggleProcessState(pid, false) {
+                ;ToolTip("Resume")
+            }
     }
     
     SetTimer(() => ToolTip(), -1500)
 }
 
-ProcessSuspend(pid) {
-    targetHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", 0, "UInt", pid, "Ptr")
-    if (targetHandle) {
-        DllCall("ntdll\NtSuspendProcess", "Ptr", targetHandle)
-        DllCall("CloseHandle", "Ptr", targetHandle)
+ToggleProcessState(pid, Freeze) {
+    ; Suspend/resume privileges (0x0800)
+    hProcess := DllCall("Kernel32.dll\OpenProcess", "UInt", 0x0800, "Int", false, "UInt", pid, "Ptr")
+    if (!hProcess) {
+        MsgBox("Allow Suspend/Resume access privileges (0x0800)")
+        SetTimer(() => ToolTip(), -1500)
+        return false
     }
-}
 
-ProcessResume(pid) {
-    targetHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", 0, "UInt", pid, "Ptr")
-    if (targetHandle) {
-        DllCall("ntdll\NtResumeProcess", "Ptr", targetHandle)
-        DllCall("CloseHandle", "Ptr", targetHandle)
+    ; Suspend/Resume
+    if (Freeze) {
+        DllCall("ntdll.dll\NtSuspendProcess", "Ptr", hProcess)
+    } else {
+        ; Call NtResumeProcess
+        DllCall("ntdll.dll\NtResumeProcess", "Ptr", hProcess)
     }
+
+    ; Clean Up
+    DllCall("Kernel32.dll\CloseHandle", "Ptr", hProcess)
+    return true
 }
 #HotIf
 
@@ -383,17 +400,12 @@ ProcessResume(pid) {
 
     Send "{Blind}c"
 
-    SetTimer(ShiftWhenStanding, 64)
-}
+    Sleep(64)
+    global IsCrouching := false
+    Send "{LShift down}"
 
-ShiftWhenStanding() {
     ShiftHolderStatus.Opt("Background00FF7F")
     ShiftHolderStatus.Redraw()
-
-    Send "{LShift down}"
-    global IsCrouching := false
-
-    SetTimer(ShiftWhenStanding, 0)
 }
 #HotIf
 
