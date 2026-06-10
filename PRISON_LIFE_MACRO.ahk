@@ -226,15 +226,16 @@ $*g:: {
         MsgBox("Put your Roblox Sensitivity in the settings")
         return
     }
-
+    
     global Turn180Var := 1750.0 / Number(Sens_Input.Value)
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    BlockInput true
 
     Send "{Blind}c"
-    DllCall("Sleep", "UInt", 6)
+    DllCall("Sleep", "UInt", 6) ; sleep for 6 ms
 
     Send "{Space down}"
-    DllCall("Sleep", "UInt", 60)
+    Sleep(60)
     Send "{Space up}"
     
     StartTime := A_TickCount 
@@ -244,14 +245,16 @@ $*g:: {
         
         DllCall("user32\mouse_event", "UInt", 0x0001, "Int", Turn180Var, "Int", 0, "UInt", 0, "Ptr", 0)
     }
-
+    
     global IsCrouching := false
+    BlockInput false
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
-; -- No Clip --
+; -- Freeze Clip --
 $*b:: {
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    BlockInput true
 
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
@@ -262,15 +265,16 @@ $*b:: {
 
     Send "{Blind}c"
 
-    ;DllCall("Sleep", "UInt", 25)
+    DllCall("Sleep", "UInt", 1) ; sleep for 1 ms
 
     freeze(1) ; starts freezing roblox 
 
-    DllCall("Sleep", "UInt", 70)
+    Sleep(850)
 
     freeze(2) ; stops freezing roblox
 
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
+    BlockInput false
 }
 
 $*y:: {
@@ -468,8 +472,8 @@ MainGUI() {
     WinSetRegion("0-0 w270 h65 r15-15", GuiThing.Hwnd)
 
     ; Shift Holder Gui
-    GuiThing.SetFont("s7 bold cWhite", "Arial")
-    ShiftHolderStatus := GuiThing.Add("Text", "x95 y0 w30 h15 Center 0x200 BackgroundFF0000 -0x100 0x1 Hidden", "SHIFT")
+    GuiThing.SetFont("s6 bold cWhite", "Arial")
+    ShiftHolderStatus := GuiThing.Add("Text", "x95 y0 w30 h15 Center 0x200 BackgroundFF0000 -0x100 0x1 Hidden", "SPRINT")
 
     ; Lag switch gui
     GuiThing.SetFont("s7 bold cWhite", "Arial")
@@ -502,8 +506,8 @@ MainGUI() {
     global GunsAmountStatus
 
     ; Credit
-    GuiThing.SetFont("s3 bold cWhite", "Consolas")
-    GuiThing.Add("Text", "x90 y35 w130", "Made By @Idkwhattonamethis223 On Youtube")
+    GuiThing.SetFont("s4 bold cWhite", "Consolas")
+    GuiThing.Add("Text", "x75 y35 w130", "Made By @Idkwhattonamethis223 On Youtube")
 
     GuiThing.Show("w260 h50") ; shows the ui
 }
@@ -542,7 +546,7 @@ HelpGui() {
         GuiHelp.Add("Text", "xp yp+15 wp Center", "R   = Shuffle Reload   ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", " T   = Lag Switch        ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "    G   = Pressure Jump        ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", " B   = No Clip           ")
+        GuiHelp.Add("Text", "xp yp+15 wp Center", "     B   = Freeze Clip           ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "       Y   = Freeze Roblox           ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "F4  = Show/Minimize    ")
         GuiHelp.Add("Text", "xp yp+15 wp Center", "DEL = Close Macro      ")
@@ -562,7 +566,7 @@ HelpGui() {
 
         GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
 
-        GuiHelp.Add("Text", "xp yp+45 wp Center", "To no clip, you need to face a thin wall `n (around 0.9 studs) and press the no clip `n keybind (spencer macro utility isnt `n needed for this btw)")
+        GuiHelp.Add("Text", "xp yp+45 wp Center", "To freeze clip, you need to face a thin wall `n (around 0.9 studs) and press the no clip `n keybind (spencer macro utility isnt `n needed for this btw)")
 
         ; Credit in help GUI
         GuiHelp.SetFont("s10 cWhite", "Consolas")
@@ -631,7 +635,7 @@ SettingsGui() {
         
         ; -- Shift Option --
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+40 w330", "Press Shift Once")
+        GuiSetting.Add("Text", "x60 yp+40 w330", "Sprint Toggler")
         
         GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
         Slot1 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
@@ -719,32 +723,33 @@ SettingsGui() {
 
                     ; if clumsy isnt installed
                     if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
+                        TrayTip() ; removes tray trip
                         TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Installer")
                         try {
                             Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", ZipPath)
                             MsgBox("Automated installation success")
                         } catch Error as err {
-                            MsgBox("Automated installation failed. Install clumsy-0.3-win64-a.zip bit from https://jagt.github.io/clumsy/download `n`n Error: " err.Message`n`n)
+                            MsgBox("Automated installation failed. Install clumsy-0.3-win64-a.zip bit from https://jagt.github.io/clumsy/download `n`n Error: " err.Message)
                             return
                         }
                     }
 
                     ; auto extract
                     if !FileExist(TargetFolder) {
+                        TrayTip() ; removes tray trip
                         TrayTip("Extracting Clumsy files", "Macro Installer")
                         try {
-                            DirCreate(TargetFolder)
+                            DirCreate(TargetFolder) ; creates folder
                             ShellObj := ComObject("Shell.Application")
                             ZipFolder := ShellObj.NameSpace(ZipPath)
                             DestFolder := ShellObj.NameSpace(TargetFolder)
 
                             if (ZipFolder && DestFolder) {
                                 DestFolder.CopyHere(ZipFolder.Items, 4 | 16)
-                                MsgBox("Extraction success. Make sure you're not touching your keyboard nor mouse for a few seconds")
                                 Sleep(800)
                             }
                         } catch Error as err {
-                            MsgBox("Extraction failed. Extract the file manually `n`nError:" err.Message)
+                            MsgBox("Extraction failed. Extract the zip file manually `n`nError:" err.Message)
                             return
                         }
                     }
@@ -756,7 +761,9 @@ SettingsGui() {
 
                         ; turns off lag switch
                         WinWait("ahk_exe clumsy.exe")
+                        BlockInput true
                         Sleep(20)
+                        BlockInput false
                         Try {
                             ControlClick("Button2", "ahk_exe clumsy.exe")
                         } catch {
