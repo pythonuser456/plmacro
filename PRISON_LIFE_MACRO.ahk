@@ -28,18 +28,13 @@ GuiHelp := ""
 i := 0
 GunAmountVar := 0
 
-Spin := 4000
-BaseDPI := 800
-BaseSens := 0.36
-
 ; -- Main GUI Call --
 if not A_IsAdmin {
     try {
-        ; Removed the dot (.) concatenation for clean v2 string handling
         Run('*RunAs "' A_ScriptFullPath '"')
-        ExitApp() ; Immediately closes the non-admin version
+        ExitApp() ; Closes non admin version 
     } catch as err { 
-        MsgBox("Admin privileges denied. Background macros will fail while Roblox is open.") 
+        MsgBox("Admin privileges denied. Some features may not work properly or work at all.") 
     }
 }
 
@@ -198,7 +193,7 @@ LagSwitchCount() {
     LagSwitchTL -= 1
     LagSwitchStatus.Value := LagSwitchTL
     LagSwitchStatus.Redraw()
-
+    
     if (LagSwitchTL <= 0) {
         IsLagging := false
         SetTimer(LagSwitchCount, 0) ; Turn off timer
@@ -313,7 +308,7 @@ ToggleProcessState(pid, Freeze) {
     ; Suspend/resume privileges (0x0800)
     hProcess := DllCall("Kernel32.dll\OpenProcess", "UInt", 0x0800, "Int", false, "UInt", pid, "Ptr")
     if (!hProcess) {
-        MsgBox("Allow Suspend/Resume access privileges (0x0800)")
+        MsgBox("Allow admin permissions")
         SetTimer(() => ToolTip(), -1500)
         return false
     }
@@ -363,7 +358,7 @@ FreezeCount() { ; useless function
 }
 
 #HotIf ShiftHolder
-*$c:: {
+*$c:: { ; Disables sprint toggle if crouched
     global ShiftHolder := false
     global IsCrouching := true
     ShiftHolderStatus.Opt("BackgroundFF0000")
@@ -374,7 +369,7 @@ FreezeCount() { ; useless function
 }
 
 #HotIf ShiftHolder or ScriptActive
-*$?:: {
+*$?:: { ; Disable sprint toggle if chatting
     global ShiftHolder := false
     global IsChatting := true
     global ScriptActive := false
@@ -389,7 +384,7 @@ FreezeCount() { ; useless function
     Send "/"
 }
 
-*$/:: {
+*$/:: { ; Does the same thing as the function above
     global ShiftHolder := false
     global IsChatting := true
     global ScriptActive := false
@@ -405,18 +400,20 @@ FreezeCount() { ; useless function
 }
 
 #HotIf IsChatting
-*$Enter:: {
+*$Enter:: { ; If done chatting then allow toggle sprint again
     global IsChatting := false
     
     Send("{Enter}")
 }
 
-~$*LButton:: {
+~$*LButton:: { ; If done chatting then allow toggle sprint again
     global IsChatting := false
+    
+    Click
 }
 
 #HotIf IsCrouching
-*$c:: {
+*$c:: { ; If done crouching allow sprinting again
     global ShiftHolder := true
 
     Send "{Blind}c"
@@ -723,8 +720,9 @@ SettingsGui() {
 
                     ; if clumsy isnt installed
                     if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
-                        TrayTip() ; removes tray trip
+                        HideTrayTip() ; removes tray trip
                         TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Installer")
+
                         try {
                             Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", ZipPath)
                             MsgBox("Automated installation success")
@@ -736,8 +734,9 @@ SettingsGui() {
 
                     ; auto extract
                     if !FileExist(TargetFolder) {
-                        TrayTip() ; removes tray trip
+                        HideTrayTip() ; Removes tray trip
                         TrayTip("Extracting Clumsy files", "Macro Installer")
+
                         try {
                             DirCreate(TargetFolder) ; creates folder
                             ShellObj := ComObject("Shell.Application")
@@ -806,5 +805,16 @@ SettingsGui() {
         WinSetRegion("0-0 w410 h410 r20-20", GuiSetting.Hwnd)
     } else {
         GuiSetting.Hide()
+    }
+}
+
+; -- Kill Tray Trip Function --
+HideTrayTip() {
+    TrayTip() ; Clears tray tip
+
+    if (SubStr(A_OSVersion, 1, 3) = "10.") { ; Hides tray trip
+        A_IconHidden := true
+        Sleep 200
+        A_IconHidden := false
     }
 }
