@@ -1,5 +1,4 @@
-; the code might not be the best
-; made by @Idkwhattonamethis223 on Youtube
+; made by @Idkwhattonamethis223 (youtube) / @cooluser75_10906 (discord)
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -10,21 +9,26 @@ SetControlDelay(-1)
 ScriptActive := false
 ShiftHolder := false
 ShowUi := false
-IsChatting := false
+
 Slot1Bool := false
 Slot2Bool := false
 Slot3Bool := false
+
 IsHelpVisible := false
 IsSettingsVisible := true
+IsChangeLogVisible := false
 IsCrouching := false
 IsChatting := false
 IsLagging := false
 IsFrozen := false
+
 LagSwitchTL := 0
 FreezeTL := 0
 GuiThing := ""
 GuiSetting := ""
 GuiHelp := ""
+GuiChangeLog := ""
+
 i := 0
 GunAmountVar := 0
 
@@ -40,9 +44,10 @@ if not A_IsAdmin {
 
 MainGui()
 SettingsGui()
+ChangeLogGui()
 OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 
-; -- Toggle LMB, R, T, G, O, P--
+; -- Toggle Almost Everything --
 *$Alt:: {
     global ScriptActive := !ScriptActive
     
@@ -60,7 +65,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     global i, Guns
 
     Loop GunAmountVar {
-        i += 1
+        i++
 
         Send "{Blind}{" i "}"
         DllCall("Sleep", "UInt", Number(ReloadDelay.Value))
@@ -85,7 +90,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     while GetKeyState("LButton", "P")  {
         Loop GunAmountVar {
-            i += 1
+            i++
 
             if (i == 10) { ; if gun amount is 10, make i = 0 so ahk can swap to the 10th slot
                 i := 0
@@ -511,10 +516,9 @@ MainGUI() {
 
 ; -- Help GUI --
 HelpGui() {
-    global GuiHelp
-    static HelpGuiShow := 0
+    static HelpGuiShow := false
 
-    if (HelpGuiShow == 0) {
+    if (!HelpGuiShow) {
         global GuiHelp
         GuiHelp := Gui("-Caption +AlwaysOnTop")
         GuiHelp.BackColor := "000000" ; black hex code
@@ -530,7 +534,6 @@ HelpGui() {
         HideHelp(*) {
             GuiHelp.Hide()
             global IsHelpVisible := false
-            global HelpXClosed := true
         }
 
         ; -- Keybinds Show --
@@ -555,29 +558,50 @@ HelpGui() {
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
-        GuiHelp.Add("Text", "xp yp+25 wp Center", "You can also press shift once to sprint by`n toggling Press Shift Once in the settings")
+        GuiHelp.Add("Text", "xp+45 yp+25 w240 Center", "
+        (Join
+        To use the very fast weapon swap macro, you need to type in
+         how many guns you have in the settings or use the O/P keybinds
+        )")
 
-        GuiHelp.Add("Text", "xp yp+35 wp Center", "To use the very fast weapon `n swap macro, you need to type in how many `n guns you have in the settings or use `n the O/P keybinds")
+        GuiHelp.Add("Text", "xp y+8 wp Center", "
+        (Join
+        To use the lag switch feature you have to wait until a window called clumsy pops up.
+         IF YOU SEE A BUTTON CALED "STOP", click it.
+         IF THE AUTO CONFIG FAILS, set these settings manually in the clumsy app. 
+         Filtering: outbound and udp.
+         Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100.
+         And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100
+        )")
 
-        GuiHelp.Add("Text", "xp yp+55 wp Center", "To use the lag switch feature `n you have to wait until a window called clumsy pops up. `n If the auto configs fail, set clumsy's settings manually as Filtering: outbound and udp. Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100. And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100")
+        GuiHelp.Add("Text", "xp y+8 wp Center", "
+        (Join
+        To activate the pressure jump macro, put your roblox sensitivity in the macro settings. 
+         Walk up to one of the pressure jump spots (search up youtube tutorial for the spots). 
+         Then crouch and shove your head fully into the object. 
+         Then press G (this is broken rn)
+        )")
 
-        GuiHelp.Add("Text", "xp yp+90 wp Center", "To activate the pressure jump macro, `n you need to change DPI in settings to your `n mouse dpi and SENS with your roblox sensivity")
-
-        GuiHelp.Add("Text", "xp yp+45 wp Center", "To freeze clip, you need to face a thin wall `n (around 0.9 studs) and press the no clip `n keybind (spencer macro utility isnt `n needed for this btw)")
+        GuiHelp.Add("Text", "xp y+8 wp Center", "
+        (Join
+        To freeze clip, you need to walk directly to a thin wall (around 0.9 studs). 
+         Set your camera angle to around 120 degrees or exactly 180 degrees (google a protractor image). 
+         Then press B and try to reach the other side of the wall you chose
+        )")
 
         ; Credit in help GUI
         GuiHelp.SetFont("s10 cWhite", "Consolas")
-        GuiHelp.Add("Text", "xp yp+50 wp Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiHelp.Add("Text", "x0 yp+75 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
-        HelpGuiShow := 1 ; never make new help guis again
+        HelpGuiShow := true
     }
 
     global IsHelpVisible := !IsHelpVisible
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w350 h700")
-        WinSetRegion("0-0 w415 h710 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w350 h770")
+        WinSetRegion("0-0 w415 h780 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -585,9 +609,9 @@ HelpGui() {
 
 ; -- Settings GUI --
 SettingsGui() {
-    static SettingsGuiShow := 0
+    static SettingsGuiShow := false
 
-    if (SettingsGuiShow == 0) {
+    if (!SettingsGuiShow) {
         global GuiSetting, DPI_Input, Sens_Input, Guns, GunsAmountStatus, ShootDelay, GunAmountVar
         GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
@@ -789,7 +813,7 @@ SettingsGui() {
         GuiSetting.SetFont("s10 cWhite", "Consolas")
         GuiSetting.Add("Text", "x0 y300 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
-        SettingsGuiShow := 1 ; never make new help guis again
+        SettingsGuiShow := true
     }
 
     global IsSettingsVisible := !IsSettingsVisible
@@ -805,6 +829,70 @@ SettingsGui() {
         WinSetRegion("0-0 w410 h410 r20-20", GuiSetting.Hwnd)
     } else {
         GuiSetting.Hide()
+    }
+}
+
+; -- Change Log Gui --
+ChangeLogGui() {
+    static ChangeLogGuiShow := false
+
+    if (!ChangeLogGuiShow) {
+        global GuiChangeLog
+        GuiChangeLog := Gui("-Caption +AlwaysOnTop")
+        GuiChangeLog.BackColor := "000000" ; Black hex code
+
+        ; Title for Change Log GUI
+        GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
+        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.0")
+
+        ; -- Change Logs --
+        GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
+
+        ; 1
+        AddText("Added change log gui", 50)
+
+        ; 2
+        AddText("Pressure jump doesnt work for some reason", 40)
+
+        ; 3
+        AddText("Made help gui cleaner", 70)
+        
+        ; 4
+        AddText("That's all for now", 40)
+
+        AddText(ChangeLogTextInput, YPosAdd) {
+            GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
+            GuiChangeLog.Add("Text", "x20 yp+" YPosAdd " w300 Center", ChangeLogTextInput)
+
+            GuiChangeLog.SetFont("s20 bold cWhite", "Segoe UI")
+            GuiChangeLog.Add("Text", "x10 yp w5", "•")
+        }
+
+        ; X button in Change Log GUI
+        GuiChangeLog.SetFont("s13 bold cWhite", "Arial")
+        GuiChangeLog.Add("Text", "x300 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideChangeLog())
+
+        ; function for hiding setting GUI
+        HideChangeLog(*) {
+            GuiChangeLog.Hide()
+            global IsChangeLogVisible := false 
+        }
+
+        ; Credit in Change Log GUI
+        GuiChangeLog.SetFont("s10 cWhite", "Consolas")
+        GuiChangeLog.Add("Text", "x0 y300 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
+
+        ChangeLogGuiShow := true
+    }
+
+    global IsChangeLogVisible := !IsChangeLogVisible
+
+    ; Shows/closes help GUI
+    if (IsChangeLogVisible) {
+        GuiChangeLog.Show("w330 h400")
+        WinSetRegion("0-0 w410 h410 r20-20", GuiChangeLog.Hwnd)
+    } else {
+        GuiChangeLog.Hide()
     }
 }
 
