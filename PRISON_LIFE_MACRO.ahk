@@ -537,12 +537,12 @@ HelpGui() {
         GuiHelp.BackColor := "000000" ; black hex code
 
         ; Title for help GUI
-        GuiHelp.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiHelp.Add("Text", "x0 y0 w330 Center", "Macro Help")
+        GuiHelp.SetFont("s35 bold cWhite", "Segoe UI")
+        GuiHelp.Add("Text", "x150 y0 w330 Center", "Macro Help")
     
         ; X button for help GUI
         GuiHelp.SetFont("s13 bold cWhite", "Arial")
-        GuiHelp.Add("Text", "x305 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
+        GuiHelp.Add("Text", "x610 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
 
         HideHelp(*) {
             GuiHelp.Hide()
@@ -550,29 +550,29 @@ HelpGui() {
         }
 
         ; -- Keybinds Show --
-        GuiHelp.SetFont("s15 bold cWhite", "Tahoma")
-        GuiHelp.Add("Text", "x0 y50 w330 Center", "Keybinds")
+        GuiHelp.SetFont("s25 bold cWhite", "Tahoma")
+        GuiHelp.Add("Text", "x0 y70 w330 Center", "Keybinds")
 
-        GuiHelp.SetFont("s11 bold cWhite", "Consolas")
-        GuiHelp.Add("Text", "xp yp+25 w330 Center",  "  ALT = LMB, R, T, G toggle")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "LMB = Laser people     ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "R   = Shuffle Reload   ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", " T   = Lag Switch        ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "    G   = Pressure Jump        ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "     B   = Freeze Clip           ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "       Y   = Freeze Roblox           ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "F4  = Show/Minimize    ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "DEL = Close Macro      ")
-        GuiHelp.Add("Text", "xp yp+15 wp Center", "     O/P = Increase/Decrease Gun `n        Amount")
+        GuiHelp.SetFont("s15 bold cWhite", "Consolas")
+        GuiHelp.Add("Text", "xp yp+45 w330 Center",  "  ALT = LMB, R, T, G toggle")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "LMB = Laser people     ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "R   = Shuffle Reload   ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "T   = Lag Switch       ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "G   = Pressure Jump    ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "B   = Freeze Clip      ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "Y   = Freeze Roblox    ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "F4  = Show/Minimize    ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "DEL = Close Macro      ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "O/P = Increase/Decrease`n     Gun Amount")
 
         ; -- Extra Info --
-        GuiHelp.SetFont("s15 bold cWhite", "Tahoma") 
-        GuiHelp.Add("Text", "xp y245 wp Center", "Extra Info")
+        GuiHelp.SetFont("s25 bold cWhite", "Tahoma") 
+        GuiHelp.Add("Text", "x310 y70 wp Center", "Extra Info")
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
         ; Gun Macro Help
-        GuiHelp.Add("Text", "xp+45 yp+25 w240 Center", "
+        GuiHelp.Add("Text", "xp+45 yp+45 w240 Center", "
         (Join
         To use the very fast weapon swap macro,
          you need to type in how many guns you have
@@ -612,8 +612,8 @@ HelpGui() {
         )")
 
         ; Credit in help GUI
-        GuiHelp.SetFont("s10 cWhite", "Consolas")
-        GuiHelp.Add("Text", "x0 yp+75 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiHelp.SetFont("s15 cWhite", "Consolas")
+        GuiHelp.Add("Text", "x50 yp+105 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         HelpGuiShow := true
     }
@@ -622,8 +622,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w350 h840")
-        WinSetRegion("0-0 w415 h850 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w700 h700")
+        WinSetRegion("0-0 w800 h710 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -871,13 +871,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.2")
+        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.3")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Made pressure jump work for every mouse pointer speed", 50)
+        AddText("Made help gui better", 50)
         
         AddText(ChangeLogTextInput, YPosAdd) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
