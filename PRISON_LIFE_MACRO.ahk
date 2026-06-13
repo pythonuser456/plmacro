@@ -598,7 +598,9 @@ HelpGui() {
          put your roblox sensitivity and your mouse pointer speed (search it your windows settings) in the macro settings. 
          Walk up to one of the pressure jump spots (search up youtube tutorial for the spots). 
          Then crouch and shove your head fully into the object. 
-         Then press G
+         Then press G. Also if you set your mouse pointer lower than 4 the script
+         would automatically set your mouse pointer speed to 4 in the MACRO settings
+         so the pressure jump would work
         )")
 
         ; Freeze Clip Help
@@ -620,8 +622,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w350 h790")
-        WinSetRegion("0-0 w415 h800 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w350 h840")
+        WinSetRegion("0-0 w415 h850 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
