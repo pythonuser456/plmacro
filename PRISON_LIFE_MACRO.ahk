@@ -10,9 +10,9 @@ ScriptActive := false
 ShiftHolder := false
 ShowUi := false
 
-Slot1Bool := false
-Slot2Bool := false
-Slot3Bool := false
+CheckBoxShiftHolderBOOL := false
+CheckBoxLagSwitchBOOL := false
+CheckBoxSoundBeepBOOL := false
 
 IsHelpVisible := false
 IsSettingsVisible := true
@@ -59,7 +59,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     StatusLabel.Opt(ScriptActive ? "Background00FF7F" : "BackgroundFF0000")
     StatusLabel.Redraw()
 
-    if Slot3Bool
+    if CheckBoxSoundBeepBOOL
         SoundBeep(ScriptActive ? 550 : 400, 20)
 }
 
@@ -77,7 +77,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     }
     i := 0
 
-    if Slot3Bool
+    if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 }
 
@@ -127,7 +127,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     Guns.Value := GunAmountVar
     Guns.Redraw()
 
-    if Slot3Bool
+    if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 }
 *$p:: {
@@ -146,12 +146,12 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     Guns.Value := GunAmountVar
     Guns.Redraw()
 
-    if Slot3Bool
+    if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 }
 
 ; -- Lag Switcher --
-#HotIf WinExist("ahk_exe clumsy.exe") && Slot2Bool && ScriptActive
+#HotIf WinExist("ahk_exe clumsy.exe") && CheckBoxLagSwitchBOOL && ScriptActive
 $*t:: {
     global IsLagging := !IsLagging
     global LagSwitchTL
@@ -170,7 +170,7 @@ $*t:: {
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
         
-        if Slot3Bool
+        if CheckBoxSoundBeepBOOL
             SoundBeep(400, 20)
         return
     }
@@ -188,7 +188,7 @@ $*t:: {
     LagSwitchStatus.Redraw()
     SetTimer(LagSwitchCount, 1000)
 
-    if Slot3Bool
+    if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 }
 
@@ -216,7 +216,7 @@ LagSwitchCount() {
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
 
-        if Slot3Bool
+        if CheckBoxSoundBeepBOOL
             SoundBeep(400, 20)
     }
 }
@@ -224,7 +224,7 @@ LagSwitchCount() {
 #HotIf ScriptActive
 ; -- Pressure Jump --
 $*g:: {
-    if Slot3Bool
+    if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
     
     if (Sens_Input.Value == 0 or MousePointerSpeed_Input.Value == 0) {
@@ -356,7 +356,7 @@ FreezeCount() { ; useless function
 
 ; -- Shift Holder --
 ~$*LShift:: {
-    if (!Slot1Bool or IsChatting or IsCrouching) {
+    if (!CheckBoxShiftHolderBOOL or IsChatting or IsCrouching) {
         return
     }
     global ShiftHolder := !ShiftHolder
@@ -374,8 +374,8 @@ FreezeCount() { ; useless function
     ShiftHolderStatus.Redraw()
 }
 
-#HotIf ShiftHolder
-*$c:: { ; Disables sprint toggle if crouched
+; Disables sprint toggle if crouched
+*$c:: {
     global ShiftHolder := false
     global IsCrouching := true
     ShiftHolderStatus.Opt("BackgroundFF0000")
@@ -385,8 +385,11 @@ FreezeCount() { ; useless function
     Send "{Blind}c"
 }
 
-#HotIf ShiftHolder or ScriptActive
-*$?:: { ; Disable sprint toggle if chatting
+; Resets sprint toggle
+*$m::SprintToggleReset()
+
+; Disable sprint toggle if chatting
+*$?:: {
     global ShiftHolder := false
     global IsChatting := true
     global ScriptActive := false
@@ -401,7 +404,8 @@ FreezeCount() { ; useless function
     Send "/"
 }
 
-*$/:: { ; Does the same thing as the function above
+; Disable sprint toggle if chatting
+*$/:: {
     global ShiftHolder := false
     global IsChatting := true
     global ScriptActive := false
@@ -417,20 +421,23 @@ FreezeCount() { ; useless function
 }
 
 #HotIf IsChatting
-*$Enter:: { ; If done chatting then allow toggle sprint again
+; If done chatting then allow toggle sprint again
+*$Enter:: { 
     global IsChatting := false
     
     Send("{Enter}")
 }
 
-~$*LButton:: { ; If done chatting then allow toggle sprint again
+; If done chatting then allow toggle sprint again
+~$*LButton:: {
     global IsChatting := false
     
     Click
 }
 
 #HotIf IsCrouching
-*$c:: { ; If done crouching allow sprinting again
+; If done crouching allow sprinting again
+*$c:: {
     global ShiftHolder := true
 
     Send "{Blind}c"
@@ -560,6 +567,7 @@ HelpGui() {
         GuiHelp.Add("Text", "xp y+5 wp Center", "G   = Pressure Jump    ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "B   = Freeze Clip      ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "Y   = Freeze Roblox    ")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "  M   = Reset sprint toggle")
         GuiHelp.Add("Text", "xp y+5 wp Center", "F4  = Show/Minimize    ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "DEL = Close Macro      ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "O/P = Increase/Decrease`n     Gun Amount")
@@ -692,8 +700,8 @@ SettingsGui() {
         
         ; Checkbox
         GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
-        Slot1 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
-        Slot1.OnEvent("Click", (*) => SlotsClicked(1))
+        CheckBoxShiftHolder := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+        CheckBoxShiftHolder.OnEvent("Click", (*) => SlotsClicked(1))
 
         ; -- Lag Switch Option --
         ; Setting name
@@ -702,8 +710,8 @@ SettingsGui() {
 
         ; Checkbox
         GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
-        Slot2 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
-        Slot2.OnEvent("Click", (*) => SlotsClicked(2))
+        CheckBoxLagSwitch := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+        CheckBoxLagSwitch.OnEvent("Click", (*) => SlotsClicked(2))
 
         ; -- Sound Beep Toggle --
         ; Setting name
@@ -712,8 +720,8 @@ SettingsGui() {
         
         ; Checkbox
         GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
-        Slot3 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
-        Slot3.OnEvent("Click", (*) => SlotsClicked(3))
+        CheckBoxSoundBeep := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+        CheckBoxSoundBeep.OnEvent("Click", (*) => SlotsClicked(3))
 
         ; -- Pressure Jump --
         ; Setting name
@@ -754,21 +762,15 @@ SettingsGui() {
         SlotsClicked(slot) {
             switch(slot) {
                 case 1:
-                    global Slot1Bool := !Slot1Bool
-                    Slot1.Opt(Slot1Bool ? "Background00FF00" : "Background000000")
-                    ShiftHolderStatus.Visible := (Slot1Bool ? true : false)
-                    Slot1.Redraw
+                    ; Sprint toggle
+                    global CheckBoxShiftHolderBOOL := !CheckBoxShiftHolderBOOL
+                    CheckBoxShiftHolder.Opt(CheckBoxShiftHolderBOOL ? "Background00FF00" : "Background000000")
+                    ShiftHolderStatus.Visible := (CheckBoxShiftHolderBOOL ? true : false)
+                    CheckBoxShiftHolder.Redraw()
                     
-                    ; if shift holder is still on but toggle is off, stop holding shift
-                    if (!Slot1Bool && ShiftHolder) {
-                        global ShiftHolder := false
-                        global IsCrouching := false
-                        global IsChatting  := false
-
-                        ShiftHolderStatus.Opt("BackgroundFF0000")
-                        ShiftHolderStatus.Redraw()
-
-                        Send "{LShift up}"
+                    ; Resets shift holder if checkbox is disabled
+                    if (!CheckBoxShiftHolderBOOL) {
+                        SprintToggleReset()
                     }
                 case 2:
                     ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip"
@@ -776,15 +778,15 @@ SettingsGui() {
                     ClumsyPath   := TargetFolder "\clumsy.exe"
                     FilterConfig := "outbound and udp"
 
-                    if (Slot2Bool) {
+                    if (CheckBoxLagSwitchBOOL) {
                         if WinExist("ahk_exe clumsy.exe") {
                             ProcessClose("clumsy.exe")
                         }
 
-                        global Slot2Bool := false
-                        Slot2.Opt("Background000000")
+                        global CheckBoxLagSwitchBOOL := false
+                        CheckBoxLagSwitch.Opt("Background000000")
                         LagSwitchStatus.Visible := false
-                        Slot2.Redraw()
+                        CheckBoxLagSwitch.Redraw()
                         return
                     }
 
@@ -844,14 +846,15 @@ SettingsGui() {
                         }
                     }
 
-                    global Slot2Bool := !Slot2Bool
-                    Slot2.Opt(Slot2Bool ? "Background00FF00" : "Background000000")
-                    LagSwitchStatus.Visible := (Slot2Bool ? true : false)
-                    Slot2.Redraw()
+                    global CheckBoxLagSwitchBOOL := !CheckBoxLagSwitchBOOL
+                    CheckBoxLagSwitch.Opt(CheckBoxLagSwitchBOOL ? "Background00FF00" : "Background000000")
+                    LagSwitchStatus.Visible := (CheckBoxLagSwitchBOOL ? true : false)
+                    CheckBoxLagSwitch.Redraw()
                 case 3:
-                    global Slot3Bool := !Slot3Bool
-                    Slot3.Opt(Slot3Bool ? "Background00FF00" : "Background000000")
-                    Slot3.Redraw()
+                    ; Sound beep
+                    global CheckBoxSoundBeepBOOL := !CheckBoxSoundBeepBOOL
+                    CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background000000")
+                    CheckBoxSoundBeep.Redraw()
             }
         }
         
@@ -889,13 +892,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.4")
+        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.5")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Made setting gui slightly look better", 50)
+        AddText("Improved sprint holder", 50)
         
         AddText(ChangeLogTextInput, YPosAdd) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
@@ -942,4 +945,15 @@ HideTrayTip() {
         Sleep 200
         A_IconHidden := false
     }
+}
+
+SprintToggleReset() {
+    global ShiftHolder := false
+    global IsCrouching := false
+    global IsChatting  := false
+
+    ShiftHolderStatus.Opt("BackgroundFF0000")
+    ShiftHolderStatus.Redraw()
+
+    Send "{LShift up}"
 }
