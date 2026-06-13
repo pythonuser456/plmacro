@@ -629,7 +629,7 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w700 h700")
+        GuiHelp.Show("w800 h710")
         WinSetRegion("0-0 w800 h710 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
@@ -860,7 +860,7 @@ SettingsGui() {
         
         ; Credit in settings GUI
         GuiSetting.SetFont("s10 cWhite", "Consolas")
-        GuiSetting.Add("Text", "x0 y300 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.Add("Text", "x10 y305 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         SettingsGuiShow := true
     }
@@ -874,7 +874,7 @@ SettingsGui() {
 
     ; Shows/closes help GUI
     if (IsSettingsVisible) {
-        GuiSetting.Show()
+        GuiSetting.Show("w430 h410")
         WinSetRegion("0-0 w430 h410 r20-20", GuiSetting.Hwnd)
     } else {
         GuiSetting.Hide()
@@ -929,7 +929,7 @@ ChangeLogGui() {
 
     ; Shows/closes help GUI
     if (IsChangeLogVisible) {
-        GuiChangeLog.Show()
+        GuiChangeLog.Show("w410 h410")
         WinSetRegion("0-0 w410 h410 r20-20", GuiChangeLog.Hwnd)
     } else {
         GuiChangeLog.Hide()
