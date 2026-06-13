@@ -33,7 +33,6 @@ i := 0
 GunAmountVar := 0
 
 Turn180Deg := false
-spin := 0
 WindowsRawSensitivity := 0
 
 
@@ -637,90 +636,109 @@ SettingsGui() {
         global GuiSetting, DPI_Input, Sens_Input, MousePointerSpeed_Input ,Guns, GunsAmountStatus, ShootDelay, GunAmountVar
         GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
+        EditBoxX := 280
+        CheckBoxX := 279 
 
         ; Title for help GUI
         GuiSetting.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiSetting.Add("Text", "x0 y0 w330 Center", "Macro Settings")
+        GuiSetting.Add("Text", "x10 y0 w330 Center", "Macro Settings")
         
         ; -- Gun Amount Choose --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 y60 w330",  "Gun Amount")
         
+        ; Editbox
         GuiSetting.SetFont("cBlack")
-        Guns := GuiSetting.AddEdit("x269 yp+3 w25 h25 0x200 +Number", GunAmountVar)
+        Guns := GuiSetting.AddEdit("x" EditBoxX " yp+3 w25 h25 0x200 +Number", GunAmountVar)
         
+        ; Safety net
         GunAmountVar := Guns.Value
         GunsAmountStatus.Value := GunAmountVar
-
         Guns.Redraw()
         GunsAmountStatus.Redraw()
         
         ; -- Shoot Delay --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Shoot Delay")
 
+        ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "xp+125 yp+10 w330",  "(milisecond)")
         
+        ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ShootDelay := GuiSetting.AddEdit("x269 y93 w25 h25 0x200 +Number", 5)
+        ShootDelay := GuiSetting.AddEdit("x" EditBoxX " y93 w25 h25 0x200 +Number", 5)
 
         ; -- Reload Delay --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Reload Delay")
 
+        ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "xp+135 yp+10 w330",  "(milisecond)")
         
+        ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ReloadDelay := GuiSetting.AddEdit("x269 y121 w25 h25 0x200 +Number", 0)
+        ReloadDelay := GuiSetting.AddEdit("x" EditBoxX " y121 w25 h25 0x200 +Number", 0)
         global ReloadDelay
         
         ; -- Shift Option --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+40 w330", "Sprint Toggler")
         
-        GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
+        ; Checkbox
+        GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
         Slot1 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
         Slot1.OnEvent("Click", (*) => SlotsClicked(1))
 
         ; -- Lag Switch Option --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Lag Switch")
 
-        GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
+        ; Checkbox
+        GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
         Slot2 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
         Slot2.OnEvent("Click", (*) => SlotsClicked(2))
 
         ; -- Sound Beep Toggle --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+25 w330",  "Sound Beep Toggle")
         
-        GuiSetting.Add("Text", "x268 yp w28 h25 BackgroundFFFFFF")
+        ; Checkbox
+        GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
         Slot3 := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
         Slot3.OnEvent("Click", (*) => SlotsClicked(3))
 
         ; -- Pressure Jump --
+        ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+35 w330",  "Pressure Jump")
 
-        ; Roblox Sensitivity
+        ; Roblox Sensitivity editbox
         GuiSetting.SetFont("s12 bold cBlack", "Consolas")
-        Sens_Input := GuiSetting.AddEdit("x265 yp+3 w45 h20", 0)
+        Sens_Input := GuiSetting.AddEdit("x286 yp+3 w45 h20", 0)
 
-        ; Windows Mouse Pointer Speed
+        ; Mouse Pointer Speed editbox
         MousePointerSpeed_Input := GuiSetting.AddEdit("x225 yp w30 h20 Number", 0)
 
+        ; Mouse pointer clarification
         GuiSetting.SetFont("s7 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x265 yp+20 w330", "ROBLOX SENS")
-        GuiSetting.SetFont("s6 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x205 yp w60", "Mouse Pointer       Speed")
+        GuiSetting.Add("Text", "x205 yp+20 w73 Center", "Mouse Pointer`nSpeed")
+
+        ; Roblox sens clarification
+        GuiSetting.Add("Text", "x278 yp w50 Center", "Roblox sensitivity")
 
         ; X button in settings GUI
         GuiSetting.SetFont("s13 bold cWhite", "Arial")
-        GuiSetting.Add("Text", "x300 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
+        GuiSetting.Add("Text", "x315 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
 
-        ; function for hiding setting GUI
+        ; Function for hiding setting GUI
         HideSetting(*) {
             GuiSetting.Hide()
             global IsSettingsVisible := false
@@ -853,8 +871,8 @@ SettingsGui() {
 
     ; Shows/closes help GUI
     if (IsSettingsVisible) {
-        GuiSetting.Show("w330 h400")
-        WinSetRegion("0-0 w410 h410 r20-20", GuiSetting.Hwnd)
+        GuiSetting.Show()
+        WinSetRegion("0-0 w430 h410 r20-20", GuiSetting.Hwnd)
     } else {
         GuiSetting.Hide()
     }
@@ -871,13 +889,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.3")
+        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.4")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Made help gui better", 50)
+        AddText("Made setting gui slightly look better", 50)
         
         AddText(ChangeLogTextInput, YPosAdd) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
@@ -908,7 +926,7 @@ ChangeLogGui() {
 
     ; Shows/closes help GUI
     if (IsChangeLogVisible) {
-        GuiChangeLog.Show("w330 h400")
+        GuiChangeLog.Show()
         WinSetRegion("0-0 w410 h410 r20-20", GuiChangeLog.Hwnd)
     } else {
         GuiChangeLog.Hide()
