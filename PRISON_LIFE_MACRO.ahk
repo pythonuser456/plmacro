@@ -32,6 +32,11 @@ GuiChangeLog := ""
 i := 0
 GunAmountVar := 0
 
+Turn180Deg := false
+spin := 0
+WindowsRawSensitivity := 0
+
+
 ; -- Main GUI Call --
 if not A_IsAdmin {
     try {
@@ -222,14 +227,18 @@ LagSwitchCount() {
 $*g:: {
     if Slot3Bool
         SoundBeep(550, 20)
-    if (Sens_Input.Value == 0) {
-        MsgBox("Put your Roblox Sensitivity in the settings")
+    
+    if (Sens_Input.Value == 0 or MousePointerSpeed_Input.Value == 0) {
+        MsgBox("Put your Roblox Sensitivity and Mouse Pointer Speed in the settings. More info in the help GUI")
         return
     }
     
-    global Turn180Var := 1750.0 / Number(Sens_Input.Value)
+    if Number(MousePointerSpeed_Input.Value) < 4
+        MousePointerSpeed_Input.Value := 4
+    
+    global WindowsRawSensitivity := float(4.0 / Number(MousePointerSpeed_Input.Value))
+    global Turn180Var := float( WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)) ) 
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
-    BlockInput true
 
     Send "{Blind}c"
     DllCall("Sleep", "UInt", 6) ; sleep for 6 ms
@@ -240,14 +249,18 @@ $*g:: {
     
     StartTime := A_TickCount 
     Loop {
-        if (A_TickCount - StartTime > 200)
+        global Turn180Deg := !Turn180Deg
+        if (A_TickCount - StartTime > 300)
             break
         
-        DllCall("user32\mouse_event", "UInt", 0x0001, "Int", Turn180Var, "Int", 0, "UInt", 0, "Ptr", 0)
+        if (Turn180Deg) {
+            DllCall("user32\mouse_event", "UInt", 0x0001, "Int", Turn180Var, "Int", 0, "UInt", 0, "UPtr", 0)
+        } else {
+            DllCall("user32\mouse_event", "UInt", 0x0001, "Int", -Turn180Var, "Int", 0, "UInt", 0, "UPtr", 0)
+        }
     }
     
     global IsCrouching := false
-    BlockInput false
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
@@ -558,15 +571,19 @@ HelpGui() {
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
+        ; Gun Macro Help
         GuiHelp.Add("Text", "xp+45 yp+25 w240 Center", "
         (Join
-        To use the very fast weapon swap macro, you need to type in
-         how many guns you have in the settings or use the O/P keybinds
+        To use the very fast weapon swap macro,
+         you need to type in how many guns you have
+         in the settings or use the O/P keybinds
         )")
 
+        ; Lag Switch Help
         GuiHelp.Add("Text", "xp y+8 wp Center", "
         (Join
-        To use the lag switch feature you have to wait until a window called clumsy pops up.
+        To use the lag switch feature,
+         you have to wait until a window called clumsy pops up.
          IF YOU SEE A BUTTON CALED "STOP", click it.
          IF THE AUTO CONFIG FAILS, set these settings manually in the clumsy app. 
          Filtering: outbound and udp.
@@ -574,14 +591,17 @@ HelpGui() {
          And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100
         )")
 
+        ; Pressure jump help
         GuiHelp.Add("Text", "xp y+8 wp Center", "
         (Join
-        To activate the pressure jump macro, put your roblox sensitivity in the macro settings. 
+        To activate the pressure jump macro,
+         put your roblox sensitivity and your mouse pointer speed (search it your windows settings) in the macro settings. 
          Walk up to one of the pressure jump spots (search up youtube tutorial for the spots). 
          Then crouch and shove your head fully into the object. 
-         Then press G (this is broken rn)
+         Then press G
         )")
 
+        ; Freeze Clip Help
         GuiHelp.Add("Text", "xp y+8 wp Center", "
         (Join
         To freeze clip, you need to walk directly to a thin wall (around 0.9 studs). 
@@ -600,8 +620,8 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w350 h770")
-        WinSetRegion("0-0 w415 h780 r20-20", GuiHelp.Hwnd)
+        GuiHelp.Show("w350 h790")
+        WinSetRegion("0-0 w415 h800 r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -612,7 +632,7 @@ SettingsGui() {
     static SettingsGuiShow := false
 
     if (!SettingsGuiShow) {
-        global GuiSetting, DPI_Input, Sens_Input, Guns, GunsAmountStatus, ShootDelay, GunAmountVar
+        global GuiSetting, DPI_Input, Sens_Input, MousePointerSpeed_Input ,Guns, GunsAmountStatus, ShootDelay, GunAmountVar
         GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
 
@@ -682,11 +702,17 @@ SettingsGui() {
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+35 w330",  "Pressure Jump")
 
+        ; Roblox Sensitivity
         GuiSetting.SetFont("s12 bold cBlack", "Consolas")
-        Sens_Input := GuiSetting.AddEdit("x260 yp+3 w45 h20", 0)
+        Sens_Input := GuiSetting.AddEdit("x265 yp+3 w45 h20", 0)
 
-        GuiSetting.SetFont("s12 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x225 yp+20 w330", "ROBLOX SENS")
+        ; Windows Mouse Pointer Speed
+        MousePointerSpeed_Input := GuiSetting.AddEdit("x225 yp w30 h20 Number", 0)
+
+        GuiSetting.SetFont("s7 bold cWhite", "Consolas")
+        GuiSetting.Add("Text", "x265 yp+20 w330", "ROBLOX SENS")
+        GuiSetting.SetFont("s6 bold cWhite", "Consolas")
+        GuiSetting.Add("Text", "x205 yp w60", "Mouse Pointer       Speed")
 
         ; X button in settings GUI
         GuiSetting.SetFont("s13 bold cWhite", "Arial")
@@ -843,26 +869,17 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.0")
+        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.2")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Added change log gui", 50)
-
-        ; 2
-        AddText("Pressure jump doesnt work for some reason", 40)
-
-        ; 3
-        AddText("Made help gui cleaner", 70)
+        AddText("Made pressure jump work for every mouse pointer speed", 50)
         
-        ; 4
-        AddText("That's all for now", 40)
-
         AddText(ChangeLogTextInput, YPosAdd) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
-            GuiChangeLog.Add("Text", "x20 yp+" YPosAdd " w300 Center", ChangeLogTextInput)
+            GuiChangeLog.Add("Text", "x35 yp+" YPosAdd " w265 Center", ChangeLogTextInput)
 
             GuiChangeLog.SetFont("s20 bold cWhite", "Segoe UI")
             GuiChangeLog.Add("Text", "x10 yp w5", "•")
