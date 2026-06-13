@@ -35,26 +35,25 @@ GunAmountVar := 0
 Turn180Deg := false
 WindowsRawSensitivity := 0
 
-
 ; -- Main GUI Call --
 if not A_IsAdmin {
     try {
         Run('*RunAs "' A_ScriptFullPath '"')
-        ExitApp() ; Closes non admin version 
-    } catch as err { 
-        MsgBox("Admin privileges denied. Some features may not work properly or work at all.") 
+        ExitApp() ; Closes non admin version
+    } catch as err {
+        MsgBox("Admin privileges denied. Some features may not work properly or work at all.")
     }
 }
 
 MainGui()
 SettingsGui()
 ChangeLogGui()
-OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
+OnMessage(0x0201, (*) => PostMessage(0xA1, 2, , , "A")) ; for gui drag
 
 ; -- Toggle Almost Everything --
 *$Alt:: {
     global ScriptActive := !ScriptActive
-    
+
     StatusLabel.Text := ScriptActive ? "ON" : "OFF"
     StatusLabel.Opt(ScriptActive ? "Background00FF7F" : "BackgroundFF0000")
     StatusLabel.Redraw()
@@ -72,7 +71,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
         i++
 
         Send "{Blind}{" i "}"
-        DllCall("Sleep", "UInt", Number(ReloadDelay.Value))
+        SuperSleep(Number(ReloadDelay.Value))
         Send "{Blind}r"
     }
     i := 0
@@ -91,8 +90,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     global GunDelay := 5
     global Guns, i
 
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
-    while GetKeyState("LButton", "P")  {
+    while GetKeyState("LButton", "P") {
         Loop GunAmountVar {
             i++
 
@@ -101,13 +99,12 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
             }
 
             Send "{Blind}{" i "}"
-            DllCall("Sleep", "UInt", Number(ShootDelay.Value))
+            SuperSleep(Number(ShootDelay.Value))
             Click
-            DllCall("Sleep", "UInt", Number(ShootDelay.Value))
+            SuperSleep(Number(ShootDelay.Value))
         }
         i := 0
     }
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; Increase/decrease Gun Amount Shortcut
@@ -130,6 +127,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 }
+
 *$p:: {
     global GunsAmountStatus, GunAmountVar, Guns
     GunAmountVar += 1
@@ -137,7 +135,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
     if (GunAmountVar < 0) {
         GunAmountVar := 0
     } else if (GunAmountVar > 10) {
-       GunAmountVar := 0
+        GunAmountVar := 0
     }
 
     GunsAmountStatus.Value := GunAmountVar
@@ -155,7 +153,7 @@ OnMessage(0x0201, (*) => PostMessage(0xA1, 2,,, "A")) ; for gui drag
 $*t:: {
     global IsLagging := !IsLagging
     global LagSwitchTL
-    
+
     ; IF TURNING OFF
     if (!IsLagging) {
         SetTimer(LagSwitchCount, 0)
@@ -164,12 +162,12 @@ $*t:: {
         } catch {
             ControlClick("Button2", "ahk_exe clumsy.exe")
         }
-        
+
         LagSwitchTL := 0
         LagSwitchStatus.Value := 0
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
-        
+
         if CheckBoxSoundBeepBOOL
             SoundBeep(400, 20)
         return
@@ -181,7 +179,7 @@ $*t:: {
     } catch {
         ControlClick("Button2", "ahk_exe clumsy.exe")
     }
-    
+
     LagSwitchTL := 19
     LagSwitchStatus.Value := LagSwitchTL
     LagSwitchStatus.Opt("Background00FF7F")
@@ -202,7 +200,7 @@ LagSwitchCount() {
     LagSwitchTL -= 1
     LagSwitchStatus.Value := LagSwitchTL
     LagSwitchStatus.Redraw()
-    
+
     if (LagSwitchTL <= 0) {
         IsLagging := false
         SetTimer(LagSwitchCount, 0) ; Turn off timer
@@ -211,7 +209,7 @@ LagSwitchCount() {
         } catch {
             ControlClick("Button2", "ahk_exe clumsy.exe")
         }
-        
+
         LagSwitchStatus.Value := 0
         LagSwitchStatus.Opt("BackgroundFF0000")
         LagSwitchStatus.Redraw()
@@ -226,48 +224,43 @@ LagSwitchCount() {
 $*g:: {
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
-    
+
     if (Sens_Input.Value == 0 or MousePointerSpeed_Input.Value == 0) {
         MsgBox("Put your Roblox Sensitivity and Mouse Pointer Speed in the settings. More info in the help GUI")
         return
     }
-    
+
     if Number(MousePointerSpeed_Input.Value) < 4
         MousePointerSpeed_Input.Value := 4
-    
+
     global WindowsRawSensitivity := float(4.0 / Number(MousePointerSpeed_Input.Value))
-    global Turn180Var := float( WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)) ) 
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    global Turn180Var := float(WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)))
 
     Send "{Blind}c"
-    DllCall("Sleep", "UInt", 6) ; sleep for 6 ms
+    SuperSleep(6)
 
     Send "{Space down}"
     Sleep(60)
     Send "{Space up}"
-    
-    StartTime := A_TickCount 
+
+    StartTime := A_TickCount
     Loop {
         global Turn180Deg := !Turn180Deg
         if (A_TickCount - StartTime > 300)
             break
-        
+
         if (Turn180Deg) {
             DllCall("user32\mouse_event", "UInt", 0x0001, "Int", Turn180Var, "Int", 0, "UInt", 0, "UPtr", 0)
         } else {
             DllCall("user32\mouse_event", "UInt", 0x0001, "Int", -Turn180Var, "Int", 0, "UInt", 0, "UPtr", 0)
         }
     }
-    
+
     global IsCrouching := false
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Freeze Clip --
 $*b:: {
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
-    BlockInput true
-
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
     global IsChatting := false
@@ -277,21 +270,18 @@ $*b:: {
 
     Send "{Blind}c"
 
-    DllCall("Sleep", "UInt", 1) ; sleep for 1 ms
+    SuperSleep(1)
 
-    freeze(1) ; starts freezing roblox 
+    freeze(1) ; starts freezing roblox
 
     Sleep(850)
 
     freeze(2) ; stops freezing roblox
-
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
-    BlockInput false
 }
 
 $*y:: {
     global IsFrozen := !IsFrozen
-    
+
     ; Freeze/Unfreeze
     if (IsFrozen) {
         freeze(1)
@@ -304,20 +294,20 @@ $*y:: {
 freeze(FreezeChoice) {
     targetProcess := "RobloxPlayerBeta.exe"
     pid := ProcessExist(targetProcess)
-    
+
     if (!pid) {
         ToolTip("Roblox not found")
         SetTimer(() => ToolTip(), -1500)
         return
     }
-    
-    switch(FreezeChoice) {
+
+    switch (FreezeChoice) {
         case 1:
             ToggleProcessState(pid, true)
         case 2:
             ToggleProcessState(pid, false)
     }
-    
+
     SetTimer(() => ToolTip(), -1500)
 }
 
@@ -386,7 +376,7 @@ FreezeCount() { ; useless function
 }
 
 ; Resets sprint toggle
-*$m::SprintToggleReset()
+*$m:: SprintToggleReset()
 
 ; Disable sprint toggle if chatting
 *$?:: {
@@ -422,16 +412,16 @@ FreezeCount() { ; useless function
 
 #HotIf IsChatting
 ; If done chatting then allow toggle sprint again
-*$Enter:: { 
+*$Enter:: {
     global IsChatting := false
-    
+
     Send("{Enter}")
 }
 
 ; If done chatting then allow toggle sprint again
 ~$*LButton:: {
     global IsChatting := false
-    
+
     Click
 }
 
@@ -470,12 +460,11 @@ $*F4:: {
 }
 
 ; -- Panic Exit --
-$*Del::StopMacro()
+$*Del:: StopMacro()
 
 ; -- Function to kill the macro --
 StopMacro() {
     Send "{LShift up}"
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 
     try ProcessClose("AutoHotkey64.exe")
     try ProcessClose("AutoHotkey.exe")
@@ -510,16 +499,16 @@ MainGUI() {
 
     ; X button
     GuiThing.SetFont("s10 cWhite", "Arial")
-    GuiThing.Add("Text", "x195 y0 w20 h15 Center 0x200 BackgroundFF0000", "X").OnEvent("Click", (*) => StopMacro() )
+    GuiThing.Add("Text", "x195 y0 w20 h15 Center 0x200 BackgroundFF0000", "X").OnEvent("Click", (*) => StopMacro())
 
     ; Help button
     GuiThing.SetFont("s8 bold cBlack", "Arial")
-    GuiThing.Add("Text", "x145 y0 w30 h15 Center 0x200 BackgroundFFFFFF", "HELP").OnEvent("Click", (*) => HelpGui() )
+    GuiThing.Add("Text", "x145 y0 w30 h15 Center 0x200 BackgroundFFFFFF", "HELP").OnEvent("Click", (*) => HelpGui())
 
     ; Settings Button
     GuiThing.SetFont("s10 cWhite", "Segoe UI Symbol")
-    GuiThing.Add("Text", "x175 y0 w20 h15 Center 0x200 Background00008B", Chr(0x2699) ).OnEvent("Click", (*) => SettingsGui() ) ; setting symbol
-    
+    GuiThing.Add("Text", "x175 y0 w20 h15 Center 0x200 Background00008B", Chr(0x2699)).OnEvent("Click", (*) => SettingsGui()) ; setting symbol
+
     ; Guns To Swap Status
     GuiThing.SetFont("s6 bold cWhite", "Arial")
     GuiThing.Add("Text", "x115 y39 w100 h15 Center 0x200", "Guns to swap:")
@@ -545,7 +534,7 @@ HelpGui() {
         ; Title for help GUI
         GuiHelp.SetFont("s35 bold cWhite", "Segoe UI")
         GuiHelp.Add("Text", "x150 y0 w330 Center", "Macro Help")
-    
+
         ; X button for help GUI
         GuiHelp.SetFont("s13 bold cWhite", "Arial")
         GuiHelp.Add("Text", "x610 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
@@ -560,8 +549,8 @@ HelpGui() {
         GuiHelp.Add("Text", "x0 y70 w330 Center", "Keybinds")
 
         GuiHelp.SetFont("s15 bold cWhite", "Consolas")
-        GuiHelp.Add("Text", "xp yp+45 w330 Center",  "  ALT = LMB, R, T, G toggle")
-        GuiHelp.Add("Text", "xp y+5 wp Center", "LMB = Laser people     ")
+        GuiHelp.Add("Text", "xp yp+45 w330 Center", "  ALT = LMB, R, T, G toggle")
+        GuiHelp.Add("Text", "xp y+5 wp Center", "LMB = Fast Gun Swap    ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "R   = Shuffle Reload   ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "T   = Lag Switch       ")
         GuiHelp.Add("Text", "xp y+5 wp Center", "G   = Pressure Jump    ")
@@ -573,7 +562,7 @@ HelpGui() {
         GuiHelp.Add("Text", "xp y+5 wp Center", "O/P = Increase/Decrease`n     Gun Amount")
 
         ; -- Extra Info --
-        GuiHelp.SetFont("s25 bold cWhite", "Tahoma") 
+        GuiHelp.SetFont("s25 bold cWhite", "Tahoma")
         GuiHelp.Add("Text", "x310 y70 wp Center", "Extra Info")
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
@@ -581,41 +570,41 @@ HelpGui() {
         ; Gun Macro Help
         GuiHelp.Add("Text", "xp+45 yp+45 w240 Center", "
         (Join
-        To use the very fast weapon swap macro,
-         you need to type in how many guns you have
-         in the settings or use the O/P keybinds
+            To use the fast weapon swap macro,
+             you need to type in how many guns you have
+             in the settings or use the O/P keybinds
         )")
 
         ; Lag Switch Help
         GuiHelp.Add("Text", "xp y+8 wp Center", "
         (Join
-        To use the lag switch feature,
-         you have to wait until a window called clumsy pops up.
-         IF YOU SEE A BUTTON CALED "STOP", click it.
-         IF THE AUTO CONFIG FAILS, set these settings manually in the clumsy app. 
-         Filtering: outbound and udp.
-         Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100.
-         And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100
+            To use the lag switch feature,
+             you have to wait until a window called clumsy pops up.
+             IF YOU SEE A BUTTON CALED "STOP", click it.
+             IF THE AUTO CONFIG FAILS, set these settings manually in the clumsy app. 
+             Filtering: outbound and udp.
+             Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100.
+             And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100
         )")
 
         ; Pressure jump help
         GuiHelp.Add("Text", "xp y+8 wp Center", "
         (Join
-        To activate the pressure jump macro,
-         put your roblox sensitivity and your mouse pointer speed (search it your windows settings) in the macro settings. 
-         Walk up to one of the pressure jump spots (search up youtube tutorial for the spots). 
-         Then crouch and shove your head fully into the object. 
-         Then press G. Also if you set your mouse pointer lower than 4 the script
-         would automatically set your mouse pointer speed to 4 in the MACRO settings
-         so the pressure jump would work
+            To activate the pressure jump macro,
+             put your roblox sensitivity and your mouse pointer speed (search it your windows settings) in the macro settings. 
+             Walk up to one of the pressure jump spots (search up youtube tutorial for the spots). 
+             Then crouch and shove your head fully into the object. 
+             Then press G. Also if you set your mouse pointer lower than 4 the script
+             would automatically set your mouse pointer speed to 4 in the MACRO settings
+             so the pressure jump would work
         )")
 
         ; Freeze Clip Help
         GuiHelp.Add("Text", "xp y+8 wp Center", "
         (Join
-        To freeze clip, you need to walk directly to a thin wall (around 0.9 studs). 
-         Set your camera angle to around 120 degrees or exactly 180 degrees (google a protractor image). 
-         Then press B and try to reach the other side of the wall you chose
+            To freeze clip, you need to walk directly to a thin wall (around 0.9 studs). 
+             Set your camera angle to around 120 degrees or exactly 180 degrees (google a protractor image). 
+             Then press B and try to reach the other side of the wall you chose
         )")
 
         ; Credit in help GUI
@@ -641,40 +630,40 @@ SettingsGui() {
     static SettingsGuiShow := false
 
     if (!SettingsGuiShow) {
-        global GuiSetting, DPI_Input, Sens_Input, MousePointerSpeed_Input ,Guns, GunsAmountStatus, ShootDelay, GunAmountVar
+        global GuiSetting, DPI_Input, Sens_Input, MousePointerSpeed_Input, Guns, GunsAmountStatus, ShootDelay, GunAmountVar
         GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
-        EditBoxX := 280
-        CheckBoxX := 279 
+        EditBoxX := 300
+        CheckBoxX := 299
 
-        ; Title for help GUI
+        ; Title for settings GUI
         GuiSetting.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiSetting.Add("Text", "x10 y0 w330 Center", "Macro Settings")
-        
+        GuiSetting.Add("Text", "x22 y0 w330 Center", "Macro Settings")
+
         ; -- Gun Amount Choose --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 y60 w330",  "Gun Amount")
-        
+        GuiSetting.Add("Text", "x60 y60 w330", "Gun Amount")
+
         ; Editbox
         GuiSetting.SetFont("cBlack")
         Guns := GuiSetting.AddEdit("x" EditBoxX " yp+3 w25 h25 0x200 +Number", GunAmountVar)
-        
+
         ; Safety net
         GunAmountVar := Guns.Value
         GunsAmountStatus.Value := GunAmountVar
         Guns.Redraw()
         GunsAmountStatus.Redraw()
-        
+
         ; -- Shoot Delay --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Shoot Delay")
+        GuiSetting.Add("Text", "x60 yp+25 w330", "Shoot Delay")
 
         ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "xp+125 yp+10 w330",  "(milisecond)")
-        
+        GuiSetting.Add("Text", "xp+125 yp+10 w330", "(milisecond)")
+
         ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
         ShootDelay := GuiSetting.AddEdit("x" EditBoxX " y93 w25 h25 0x200 +Number", 5)
@@ -682,22 +671,22 @@ SettingsGui() {
         ; -- Reload Delay --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Reload Delay")
+        GuiSetting.Add("Text", "x60 yp+25 w330", "Reload Delay")
 
         ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "xp+135 yp+10 w330",  "(milisecond)")
-        
+        GuiSetting.Add("Text", "xp+135 yp+10 w330", "(milisecond)")
+
         ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
         ReloadDelay := GuiSetting.AddEdit("x" EditBoxX " y121 w25 h25 0x200 +Number", 0)
         global ReloadDelay
-        
+
         ; -- Shift Option --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
         GuiSetting.Add("Text", "x60 yp+40 w330", "Sprint Toggler")
-        
+
         ; Checkbox
         GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
         CheckBoxShiftHolder := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
@@ -706,7 +695,7 @@ SettingsGui() {
         ; -- Lag Switch Option --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Lag Switch")
+        GuiSetting.Add("Text", "x60 yp+25 w330", "Lag Switch")
 
         ; Checkbox
         GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
@@ -716,8 +705,8 @@ SettingsGui() {
         ; -- Sound Beep Toggle --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+25 w330",  "Sound Beep Toggle")
-        
+        GuiSetting.Add("Text", "x60 yp+25 w330", "Sound Beep Toggle")
+
         ; Checkbox
         GuiSetting.Add("Text", "x" CheckBoxX " yp w28 h25 BackgroundFFFFFF")
         CheckBoxSoundBeep := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
@@ -726,25 +715,25 @@ SettingsGui() {
         ; -- Pressure Jump --
         ; Setting name
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x60 yp+35 w330",  "Pressure Jump")
-
-        ; Roblox Sensitivity editbox
-        GuiSetting.SetFont("s12 bold cBlack", "Consolas")
-        Sens_Input := GuiSetting.AddEdit("x286 yp+3 w45 h20", 0)
+        GuiSetting.Add("Text", "x60 yp+35 w330", "Pressure Jump")
 
         ; Mouse Pointer Speed editbox
+        GuiSetting.SetFont("s12 bold cBlack", "Consolas")
         MousePointerSpeed_Input := GuiSetting.AddEdit("x225 yp w30 h20 Number", 0)
+
+        ; Roblox Sensitivity editbox
+        Sens_Input := GuiSetting.AddEdit("x295 yp w45 h20", 0)
 
         ; Mouse pointer clarification
         GuiSetting.SetFont("s7 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x205 yp+20 w73 Center", "Mouse Pointer`nSpeed")
+        GuiSetting.Add("Text", "x204 yp+20 w73 Center", "Mouse`nPointer Speed")
 
         ; Roblox sens clarification
-        GuiSetting.Add("Text", "x278 yp w50 Center", "Roblox sensitivity")
+        GuiSetting.Add("Text", "x287 yp w50 Center", "Roblox sensitivity")
 
         ; X button in settings GUI
         GuiSetting.SetFont("s13 bold cWhite", "Arial")
-        GuiSetting.Add("Text", "x315 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
+        GuiSetting.Add("Text", "x330 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
 
         ; Function for hiding setting GUI
         HideSetting(*) {
@@ -760,22 +749,22 @@ SettingsGui() {
 
         ; function for toggle
         SlotsClicked(slot) {
-            switch(slot) {
+            switch (slot) {
                 case 1:
                     ; Sprint toggle
                     global CheckBoxShiftHolderBOOL := !CheckBoxShiftHolderBOOL
                     CheckBoxShiftHolder.Opt(CheckBoxShiftHolderBOOL ? "Background00FF00" : "Background000000")
                     ShiftHolderStatus.Visible := (CheckBoxShiftHolderBOOL ? true : false)
                     CheckBoxShiftHolder.Redraw()
-                    
+
                     ; Resets shift holder if checkbox is disabled
                     if (!CheckBoxShiftHolderBOOL) {
                         SprintToggleReset()
                     }
                 case 2:
-                    ZipPath      := A_ScriptDir "\clumsy-0.3-win64-a.zip"
+                    ZipPath := A_ScriptDir "\clumsy-0.3-win64-a.zip"
                     TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a"
-                    ClumsyPath   := TargetFolder "\clumsy.exe"
+                    ClumsyPath := TargetFolder "\clumsy.exe"
                     FilterConfig := "outbound and udp"
 
                     if (CheckBoxLagSwitchBOOL) {
@@ -857,10 +846,10 @@ SettingsGui() {
                     CheckBoxSoundBeep.Redraw()
             }
         }
-        
+
         ; Credit in settings GUI
         GuiSetting.SetFont("s10 cWhite", "Consolas")
-        GuiSetting.Add("Text", "x10 y305 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.Add("Text", "x35 y305 w300 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         SettingsGuiShow := true
     }
@@ -872,10 +861,10 @@ SettingsGui() {
     Guns.Redraw()
     GunsAmountStatus.Redraw()
 
-    ; Shows/closes help GUI
+    ; Shows/closes Settings GUI
     if (IsSettingsVisible) {
-        GuiSetting.Show("w430 h410")
-        WinSetRegion("0-0 w430 h410 r20-20", GuiSetting.Hwnd)
+        GuiSetting.Show("w450 h410")
+        WinSetRegion("0-0 w450 h410 r20-20", GuiSetting.Hwnd)
     } else {
         GuiSetting.Hide()
     }
@@ -889,20 +878,29 @@ ChangeLogGui() {
         global GuiChangeLog
         GuiChangeLog := Gui("-Caption +AlwaysOnTop")
         GuiChangeLog.BackColor := "000000" ; Black hex code
+        static FirstLog  := 50
+        static NormalLog := 40
+        static DoubleLog := 75
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w330 Center", "Change Log V1.5")
+        GuiChangeLog.Add("Text", "x0 y0 w350 Center", "Change Log V1.6")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Improved sprint holder", 50)
-        
+        AddText("Improved gun swap macro", FirstLog)
+
+        ; 2
+        AddText("Slightly improved settings gui", DoubleLog)
+
+        ; 3
+        AddText("Modified help gui", DoubleLog)
+
         AddText(ChangeLogTextInput, YPosAdd) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
-            GuiChangeLog.Add("Text", "x35 yp+" YPosAdd " w265 Center", ChangeLogTextInput)
+            GuiChangeLog.Add("Text", "x45 yp+" YPosAdd " w265 Center", ChangeLogTextInput)
 
             GuiChangeLog.SetFont("s20 bold cWhite", "Segoe UI")
             GuiChangeLog.Add("Text", "x10 yp w5", "•")
@@ -910,17 +908,17 @@ ChangeLogGui() {
 
         ; X button in Change Log GUI
         GuiChangeLog.SetFont("s13 bold cWhite", "Arial")
-        GuiChangeLog.Add("Text", "x300 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideChangeLog())
+        GuiChangeLog.Add("Text", "x315 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideChangeLog())
 
         ; function for hiding setting GUI
         HideChangeLog(*) {
             GuiChangeLog.Hide()
-            global IsChangeLogVisible := false 
+            global IsChangeLogVisible := false
         }
 
         ; Credit in Change Log GUI
         GuiChangeLog.SetFont("s10 cWhite", "Consolas")
-        GuiChangeLog.Add("Text", "x0 y300 w330 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiChangeLog.Add("Text", "x0 y300 w350 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         ChangeLogGuiShow := true
     }
@@ -929,8 +927,8 @@ ChangeLogGui() {
 
     ; Shows/closes help GUI
     if (IsChangeLogVisible) {
-        GuiChangeLog.Show("w410 h410")
-        WinSetRegion("0-0 w410 h410 r20-20", GuiChangeLog.Hwnd)
+        GuiChangeLog.Show("w430 h410")
+        WinSetRegion("0-0 w430 h410 r20-20", GuiChangeLog.Hwnd)
     } else {
         GuiChangeLog.Hide()
     }
@@ -947,13 +945,31 @@ HideTrayTip() {
     }
 }
 
+; -- Reset Sprint Toggle --
 SprintToggleReset() {
     global ShiftHolder := false
     global IsCrouching := false
-    global IsChatting  := false
+    global IsChatting := false
 
     ShiftHolderStatus.Opt("BackgroundFF0000")
     ShiftHolderStatus.Redraw()
 
     Send "{LShift up}"
+}
+
+; -- Sleep below 10ms --
+SuperSleep(ms) {
+    DllCall("QueryPerformanceFrequency", "Int64*", &freq := 0)
+    DllCall("QueryPerformanceCounter", "Int64*", &start := 0)
+    
+    target := start + (ms * freq / 1000)
+    current := 0
+    
+    loop {
+        Sleep(-1) 
+        
+        DllCall("QueryPerformanceCounter", "Int64*", &current)
+        if (current >= target)
+            break
+    }
 }
