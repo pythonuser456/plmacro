@@ -115,9 +115,9 @@ ShootGun() {
         }
 
         Send "{Blind}{" i "}"
-        DllCall("Sleep", "UInt", Number(ShootDelay.Value)) 
+        DllCall("Sleep", "UInt", Number(ShootDelay.Value))
         Click
-        DllCall("Sleep", "UInt", Number(ShootDelay.Value)) 
+        DllCall("Sleep", "UInt", Number(ShootDelay.Value))
     }
     i := 0
     Send "{Blind}1"
@@ -132,8 +132,12 @@ ShuffleReload(hk := "") {
     Loop GunAmountVar {
         i++
 
+        if (i >= 10) {
+            i := 0
+        }
+
         Send "{Blind}{" i "}"
-        DllCall("Sleep", "UInt", Number(ReloadDelay.Value)) 
+        DllCall("Sleep", "UInt", Number(ReloadDelay.Value))
         Send "{Blind}r"
     }
     i := 0
@@ -145,7 +149,7 @@ ShuffleReload(hk := "") {
 
 ; -- Increase/decrease Gun Amount Shortcut --
 DecreaseGunAmountFunc(hk := "") {
-    global GunsAmountStatus, GunAmountVar, Guns
+    global GunsAmountStatus, GunAmountVar, GunsSettingEditbox
 
     GunAmountVar -= 1
 
@@ -158,15 +162,15 @@ DecreaseGunAmountFunc(hk := "") {
     GunsAmountStatus.Value := GunAmountVar
     GunsAmountStatus.Redraw()
 
-    Guns.Value := GunAmountVar
-    Guns.Redraw()
+    GunsSettingEditbox.Value := GunAmountVar
+    GunsSettingEditbox.Redraw()
 
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 }
 
 IncreaseGunAmountFunc(hk := "") {
-    global GunsAmountStatus, GunAmountVar, Guns
+    global GunsAmountStatus, GunAmountVar, GunsSettingEditbox
 
     GunAmountVar += 1
 
@@ -179,8 +183,8 @@ IncreaseGunAmountFunc(hk := "") {
     GunsAmountStatus.Value := GunAmountVar
     GunsAmountStatus.Redraw()
 
-    Guns.Value := GunAmountVar
-    Guns.Redraw()
+    GunsSettingEditbox.Value := GunAmountVar
+    GunsSettingEditbox.Redraw()
 
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
@@ -275,7 +279,7 @@ PressureJump(hk := "") {
     global Turn180Var := float(WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)))
 
     Send "{Blind}c"
-    DllCall("Sleep", "UInt", 6) 
+    DllCall("Sleep", "UInt", 6)
 
     Send "{Space down}"
     Sleep(60)
@@ -311,7 +315,7 @@ FreezeClip(hk := "") {
 
     Send "{Blind}c"
 
-    DllCall("Sleep", "UInt", 1) 
+    DllCall("Sleep", "UInt", 1)
 
     freeze(1) ; starts freezing roblox
 
@@ -386,13 +390,14 @@ FreezeCount() { ; useless function
         SetTimer(FreezeCount, 0)
     }
 }
-HotIf()
 
+#HotIf
 ; -- Shift Holder --
 ~$*LShift:: {
     if (!CheckBoxShiftHolderBOOL or IsChatting or IsCrouching) {
         return
     }
+
     global ShiftHolder := !ShiftHolder
     global IsCrouching := false
     global IsChatting := false
@@ -522,7 +527,7 @@ StopMacro(hk := "") {
     try ProcessClose("AutoHotkey64.exe")
     try ProcessClose("AutoHotkey.exe")
     try WinClose("ahk_exe clumsy.exe")
-    
+
     ExitApp()
 }
 
@@ -746,7 +751,7 @@ SettingsGui() {
     static SettingsGuiShow := false
 
     if (!SettingsGuiShow) {
-        global GuiSetting, Sens_Input, MousePointerSpeed_Input, Guns, GunsAmountStatus, ShootDelay, GunAmountVar
+        global GuiSetting, Sens_Input, MousePointerSpeed_Input, GunsSettingEditbox, GunsAmountStatus, ShootDelay, GunAmountVar
         GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
         EditBoxX := 250 ; other settings
@@ -768,7 +773,7 @@ SettingsGui() {
 
         ; Editbox
         GuiSetting.SetFont("cBlack")
-        Guns := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", GunAmountVar)
+        GunsSettingEditbox := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", GunAmountVar)
 
         ; -- Shoot Delay --
         ; Setting name
@@ -999,10 +1004,13 @@ SettingsGui() {
             GuiSetting.Hide()
             global IsSettingsVisible := false
 
-            GunAmountVar := Guns.Value
-            GunsAmountStatus.Value := GunAmountVar
+            if (GunsSettingEditbox.Value > 10) {
+                GunsSettingEditbox.Value := 10
+            }
+            GunAmountVar := GunsSettingEditbox.Value
+            GunsAmountStatus.Value := GunsSettingEditbox.Value
 
-            Guns.Redraw()
+            GunsSettingEditbox.Redraw()
             GunsAmountStatus.Redraw()
 
             SetTimer(KeybindModifier, 0)
@@ -1289,10 +1297,14 @@ KeybindModifier(*) {
             HotIf()
         }
     }
-    GunAmountVar := Guns.Value
-    GunsAmountStatus.Value := GunAmountVar
+    global GunAmountVar, GunsSettingEditbox
+    if (GunsSettingEditbox.Value > 10) {
+        GunsSettingEditbox.Value := 10
+    }
+    GunAmountVar := GunsSettingEditbox.Value
+    GunsAmountStatus.Value := GunsSettingEditbox.Value
 
-    Guns.Redraw()
+    GunsSettingEditbox.Redraw()
     GunsAmountStatus.Redraw()
 
     HideTrayTip()
@@ -1324,17 +1336,17 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.3")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.4")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Fixed buggy inputs (hopefully)", FirstLog)
+        AddText("Fixed sprint toggle bug", FirstLog)
 
         ; 2
-        ;AddText("Fast gun swap's toggle feature no longer has a 1ms delay", DoubleLog)
-
+        AddText("Added more safety features for gun related macros", DoubleLog)
+        
         ; 3
         ;AddText("Settings gui modified", TripleLog)
 
