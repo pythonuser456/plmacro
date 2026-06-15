@@ -4,6 +4,7 @@
 #SingleInstance Force
 ProcessSetPriority "High"
 SetControlDelay(-1)
+#MaxThreadsPerHotkey 2
 
 ; -- Variables --
 ScriptActive := false
@@ -21,7 +22,7 @@ IsCrouching := false
 IsChatting := false
 IsLagging := false
 IsFrozen := false
-IsFastGunSwapToggle := false
+IsFastGunSwapHolding := false
 
 LagSwitchTL := 0
 FreezeTL := 0
@@ -78,31 +79,10 @@ MainToggle(hk := "") {
         SoundBeep(ScriptActive ? 550 : 400, 20)
 }
 
-; -- Reload All --
-ShuffleReload(hk := "") {
-    global i, Guns
-
-    if (!ScriptActive) {
-        return
-    }
-
-    Loop GunAmountVar {
-        i++
-
-        Send "{Blind}{" i "}"
-        SuperSleep(Number(ReloadDelay.Value))
-        Send "{Blind}r"
-    }
-    i := 0
-
-    if CheckBoxSoundBeepBOOL
-        SoundBeep(550, 20)
-}
 
 ; -- Fast Gun Swap --
-#HotIf ScriptActive
-~$*LButton:: {
-    global Guns, i
+FastGunSwap(hk := "") {
+    global Guns, i, IsFastGunSwapHolding
 
     if (!ScriptActive) {
         return
@@ -110,17 +90,18 @@ ShuffleReload(hk := "") {
 
     ; Shoots
     if (FastGunSwapChoiceIsHold) {
-        while GetKeyState("LButton", "P") {
+        while GetKeyState(SecondaryFastGunSwapKeybindString, "P") {
             ShootGun()
         }
     }
     else {
-        global IsFastGunSwapToggle := !IsFastGunSwapToggle
+        IsFastGunSwapHolding := !IsFastGunSwapHolding
 
-        if (IsFastGunSwapToggle) {
-            SetTimer(ShootGun, 1)
-        } else {
-            SetTimer(ShootGun, 0)
+        Loop {
+            if (!IsFastGunSwapHolding) {
+                break
+            }
+            ShootGun()
         }
     }
 }
@@ -146,6 +127,27 @@ ShootGun() {
         SuperSleep(Number(ShootDelay.Value))
     }
     i := 0
+}
+
+; -- Shuffle Reload --
+ShuffleReload(hk := "") {
+    global i, Guns
+
+    if (!ScriptActive) {
+        return
+    }
+
+    Loop GunAmountVar {
+        i++
+
+        Send "{Blind}{" i "}"
+        SuperSleep(Number(ReloadDelay.Value))
+        Send "{Blind}r"
+    }
+    i := 0
+
+    if CheckBoxSoundBeepBOOL
+        SoundBeep(550, 20)
 }
 
 ; -- Increase/decrease Gun Amount Shortcut --
@@ -609,11 +611,11 @@ HelpGui() {
 
         ; Title for help GUI
         GuiHelp.SetFont("s35 bold cWhite", "Segoe UI")
-        GuiHelp.Add("Text", "x150 y0 w330 Center", "Macro Help")
+        GuiHelp.Add("Text", "x150 y0 w370 Center", "Macro Help")
 
         ; X button for help GUI
         GuiHelp.SetFont("s13 bold cWhite", "Arial")
-        GuiHelp.Add("Text", "x610 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
+        GuiHelp.Add("Text", "x634 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
 
         HideHelp(*) {
             GuiHelp.Hide()
@@ -621,8 +623,8 @@ HelpGui() {
         }
 
         ; -- Keybinds Show --
-        GuiHelp.SetFont("s25 bold cWhite", "Tahoma")
-        GuiHelp.Add("Text", "x0 y70 w330 Center", "Keybinds")
+        GuiHelp.SetFont("s25 bold cWhite", "Tahoma") ; HELP GUI FIRST ANCHOR
+        GuiHelp.Add("Text", "x-8 y70 w330 Center", "Keybinds")
 
         GuiHelp.SetFont("s15 bold cWhite", "Consolas")
         ; Main toggle help
@@ -632,7 +634,7 @@ HelpGui() {
 
         ; Fast gun swap help
         GuiHelpAddKeyBindHelp("= Fast Gun Swap      ")
-        FastGunSwapHelp := GuiHelp.Add("Text", "xp-10 yp w60", "LMB")
+        FastGunSwapHelp := GuiHelp.Add("Text", "xp-10 yp w60", StrUpper(FastGunSwapKeybind.Value))
         global FastGunSwapHelp
 
         ; Shuffle reload help
@@ -692,7 +694,7 @@ HelpGui() {
 
         ; -- Extra Info --
         GuiHelp.SetFont("s25 bold cWhite", "Tahoma")
-        GuiHelp.Add("Text", "x310 y70 w330 Center", "Extra Info")
+        GuiHelp.Add("Text", "x335 y70 w330 Center", "Extra Info") ; HELP GUI SECOND ANCHOR
 
         GuiHelp.SetFont("s7 cWhite", "Consolas")
 
@@ -745,7 +747,7 @@ HelpGui() {
 
         ; Credit in help GUI
         GuiHelp.SetFont("s15 cWhite", "Consolas")
-        GuiHelp.Add("Text", "x50 y+8 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiHelp.Add("Text", "x55 y+8 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         HelpGuiShow := true
     }
@@ -754,8 +756,10 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        GuiHelp.Show("w800 h710")
-        WinSetRegion("0-0 w800 h710 r20-20", GuiHelp.Hwnd)
+        HelpGuiW := 830
+        HelpGuiH := 710
+        GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
+        WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
     } else {
         GuiHelp.Hide()
     }
@@ -772,8 +776,8 @@ SettingsGui() {
         EditBoxX := 250 ; other settings
         EditBox2X := 30 ; keybind
         CheckBoxX := EditBoxX - 1 ; other settings
-        FirstSettingNameX := 60 ; keybind
-        SecondSettingNameX := 390 ; other settings
+        FirstSettingNameX := 50 ; keybind
+        SecondSettingNameX := 400 ; other settings
         KeybindYAnchor := 70 ; keybind
         EqualSignDistance := 290 ; keybind
 
@@ -885,10 +889,15 @@ SettingsGui() {
         GuiSetting.Add("Text", "x" FirstSettingNameX " y" KeybindYAnchor " w150", "Fast Gun Swap")
         EqualSignFunc()
 
+        ; Fast gun swap editbox
+        GuiSetting.SetFont("s15 bold cBlack", "Consolas")
+        FastGunSwapKeybind := GuiSetting.AddEdit("xp+" EditBox2X " yp w45 h25 0x200", "LMB")
+        global FastGunSwapKeybind
+
         ; Hold or toggle
         GuiSetting.SetFont("s10 bold cBlack", "Arial")
         global FastGunSwapChoiceStatus
-        FastGunSwapChoiceStatus := GuiSetting.Add("Text", "xp+" EditBox2X " yp w45 h25 0x200 BackgroundFFFFFF -0x100 0x1", "Hold")
+        FastGunSwapChoiceStatus := GuiSetting.Add("Text", "xp-120 yp w45 h25 0x200 BackgroundFFFFFF -0x100 0x1", "Hold")
         FastGunSwapChoiceStatus.OnEvent("Click", (*) => FastGunSwapHoldOrToggle())
 
         ; Shuffle reload name
@@ -1003,7 +1012,7 @@ SettingsGui() {
 
         ; X button in settings GUI
         GuiSetting.SetFont("s17 bold cWhite", "Arial")
-        GuiSetting.Add("Text", "x690 y0 w40 h25 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
+        GuiSetting.Add("Text", "x713 y0 w40 h25 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
 
         ; Apply Settings
         GuiSetting.SetFont("s13 bold cWhite", "Arial")
@@ -1140,7 +1149,7 @@ SettingsGui() {
 
     ; Shows/closes Settings GUI
     if (IsSettingsVisible) {
-        SettingsGuiShowW := 910
+        SettingsGuiShowW := 940
         SettingsGuiShowH := 600
         GuiSetting.Show("w" SettingsGuiShowW " h" SettingsGuiShowH "")
         WinSetRegion("0-0 w" SettingsGuiShowW " h" SettingsGuiShowH " r20-20", GuiSetting.Hwnd)
@@ -1164,7 +1173,7 @@ KeybindModifier(*) {
     global CloseMacroKeybindString, IncreaseGunAmountString, DecreaseGunAmountString, SecondaryFastGunSwapKeybindString
 
     ; Vars for help gui
-    global MainToggleHelp, ShuffleReloadHelp, LagswitchHelp, PressureJumpHelp
+    global MainToggleHelp, FastGunSwapHelp, ShuffleReloadHelp, LagswitchHelp, PressureJumpHelp
     global FreezeClipHelp, FreezeRobloxHelp, ResetSprintToggleHelp, ShowOrMinimizeHelp
     global CloseMacroHelp, IncreaseGunAmountHelp, DecreaseGunAmountHelp
 
@@ -1173,6 +1182,7 @@ KeybindModifier(*) {
 
     Keybinds := [
         MainToggleKeybind,
+        FastGunSwapKeybind,
         ShuffleReloadKeybind,
         LagSwitchKeybind,
         PressureJumpKeybind,
@@ -1187,6 +1197,7 @@ KeybindModifier(*) {
 
     FinalKeyBindString := [
         "MainToggleKeybindString",
+        "FastGunSwapKeybindString",
         "ShuffleReloadKeybindString",
         "LagSwitchKeybindString",
         "PressureJumpKeybindString",
@@ -1201,6 +1212,7 @@ KeybindModifier(*) {
 
     FunctionNames := [
         MainToggle,
+        FastGunSwap,
         ShuffleReload,
         Lagswitch,
         PressureJump,
@@ -1215,6 +1227,7 @@ KeybindModifier(*) {
 
     HelpGuiVariables := [
         "MainToggleHelp",
+        "FastGunSwapHelp",
         "ShuffleReloadHelp",
         "LagswitchHelp",
         "PressureJumpHelp",
@@ -1237,23 +1250,43 @@ KeybindModifier(*) {
             continue
         }
 
-        if (%VarName% != "") {
+        OldHotkey := Max(1, 1) ? (%VarName%) : ""
+
+        ; Deactivate old hotkey
+        if (OldHotkey != "") {
             Try {
                 Hotkey(%VarName%, "Off")
-                Hotkey(%VarName%, "")
             }
         }
 
-        %VarName% := KeybindStringAdd . CurText
+        ; Modifies strings and stuff
+        if (CurText == "LMB") {
+            %VarName% := KeybindStringAdd . "LButton"
 
-        if IsSet(%HelpText%) {
-            %HelpText%.Value := StrUpper(CurText)
-            %HelpText%.Redraw()
+            if (VarName == "FastGunSwapKeybindString") {
+                SecondaryFastGunSwapKeybindString := "LButton"
+            }
+        } else {
+            %VarName% := KeybindStringAdd . CurText
+
+            if (VarName == "FastGunSwapKeybindString") {
+                SecondaryFastGunSwapKeybindString := CurText
+            }
         }
-        
+        CurAssignedHotkey := %VarName%
+
+        ; Help gui update
         Try {
-            Hotkey(%VarName%, FuncName.Bind())
-            Hotkey(%VarName%, "On") 
+            if IsSet(%HelpText%) {
+                %HelpText%.Value := StrUpper(CurText)
+                %HelpText%.Redraw()
+            }
+        }
+
+        ; Bind new hotkey
+        Try {
+            Hotkey(CurAssignedHotkey, FuncName.Bind())
+            Hotkey(CurAssignedHotkey, "On")
         }
     }
     GunAmountVar := Guns.Value
@@ -1274,12 +1307,6 @@ FastGunSwapHoldOrToggle(*) {
 
     FastGunSwapChoiceStatus.Value := FastGunSwapChoiceIsHold ? "Hold" : "Toggle"
     FastGunSwapChoiceStatus.Redraw()
-
-    if (!FastGunSwapChoiceIsHold) {
-        HideTrayTip()
-        TrayTip("Disclamer: You'll have 1 ms delay so using hold is better mechanically wise")
-        SetTimer(HideTrayTip, 2500)
-    }
 }
 
 ; -- Change Log Gui --
@@ -1291,28 +1318,29 @@ ChangeLogGui() {
         GuiChangeLog := Gui("-Caption +AlwaysOnTop")
         GuiChangeLog.BackColor := "000000" ; Black hex code
         static FirstLog := 50
-        static NormalLog := 45
+        static OneLog := 45
         static DoubleLog := 75
+        static TripleLog := 105
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w350 Center", "Change Log V2.0")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.1")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Keybinds are now customizable", FirstLog)
+        AddText("Fast gun swap keybind is now customizable", FirstLog)
 
         ; 2
-        AddText("Settings gui modified", DoubleLog)
+        AddText("Fast gun swap's toggle feature no longer has a 1ms delay", DoubleLog)
 
         ; 3
-        AddText("Modified help gui", NormalLog)
+        AddText("Settings gui modified", TripleLog)
 
-        AddText(ChangeLogTextInput, YPosAdd) {
+        AddText(ChangeLogTextInput, YposInput) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
-            GuiChangeLog.Add("Text", "x45 yp+" YPosAdd " w265 Center", ChangeLogTextInput)
+            GuiChangeLog.Add("Text", "x50 yp+" YposInput " w265 Center", ChangeLogTextInput)
 
             GuiChangeLog.SetFont("s20 bold cWhite", "Segoe UI")
             GuiChangeLog.Add("Text", "x10 yp w5", "•")
@@ -1320,7 +1348,7 @@ ChangeLogGui() {
 
         ; X button in Change Log GUI
         GuiChangeLog.SetFont("s13 bold cWhite", "Arial")
-        GuiChangeLog.Add("Text", "x315 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideChangeLog())
+        GuiChangeLog.Add("Text", "x329 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideChangeLog())
 
         ; function for hiding setting GUI
         HideChangeLog(*) {
@@ -1330,17 +1358,19 @@ ChangeLogGui() {
 
         ; Credit in Change Log GUI
         GuiChangeLog.SetFont("s10 cWhite", "Consolas")
-        GuiChangeLog.Add("Text", "x0 y300 w350 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiChangeLog.Add("Text", "x0 y340 w360 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         ChangeLogGuiShow := true
     }
 
     global IsChangeLogVisible := !IsChangeLogVisible
 
-    ; Shows/closes help GUI
+    ; Shows/closes changelog GUI
     if (IsChangeLogVisible) {
-        GuiChangeLog.Show("w430 h410")
-        WinSetRegion("0-0 w430 h410 r20-20", GuiChangeLog.Hwnd)
+        ChangeLogW := 450
+        ChangeLogH := 450
+        GuiChangeLog.Show("w" ChangeLogW " h" ChangeLogH "")
+        WinSetRegion("0-0 w" ChangeLogW " h" ChangeLogH " r20-20", GuiChangeLog.Hwnd)
     } else {
         GuiChangeLog.Hide()
     }
@@ -1374,3 +1404,8 @@ SuperSleep(ms) {
             break
     }
 }
+
+/*~^s:: {
+    Sleep(200)
+    Reload()
+}*/
