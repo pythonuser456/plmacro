@@ -79,14 +79,10 @@ MainToggle(hk := "") {
         SoundBeep(ScriptActive ? 550 : 400, 20)
 }
 
-
+HotIf (*) => ScriptActive
 ; -- Fast Gun Swap --
 FastGunSwap(hk := "") {
     global Guns, i, IsFastGunSwapHolding
-
-    if (!ScriptActive) {
-        return
-    }
 
     ; Shoots
     if (FastGunSwapChoiceIsHold) {
@@ -110,10 +106,6 @@ FastGunSwap(hk := "") {
 ShootGun() {
     global GunAmountVar, i, ShootDelay
 
-    if (!ScriptActive) {
-        return
-    }
-
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     Loop GunAmountVar {
         i++
@@ -126,19 +118,15 @@ ShootGun() {
         DllCall("Sleep", "UInt", Number(ShootDelay.Value)) 
         Click
         DllCall("Sleep", "UInt", Number(ShootDelay.Value)) 
-
     }
     i := 0
+    Send "{Blind}1"
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
     global i, Guns
-
-    if (!ScriptActive) {
-        return
-    }
 
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     Loop GunAmountVar {
@@ -158,10 +146,6 @@ ShuffleReload(hk := "") {
 ; -- Increase/decrease Gun Amount Shortcut --
 DecreaseGunAmountFunc(hk := "") {
     global GunsAmountStatus, GunAmountVar, Guns
-
-    if (!ScriptActive) {
-        return
-    }
 
     GunAmountVar -= 1
 
@@ -183,10 +167,6 @@ DecreaseGunAmountFunc(hk := "") {
 
 IncreaseGunAmountFunc(hk := "") {
     global GunsAmountStatus, GunAmountVar, Guns
-
-    if (!ScriptActive) {
-        return
-    }
 
     GunAmountVar += 1
 
@@ -210,10 +190,6 @@ IncreaseGunAmountFunc(hk := "") {
 Lagswitch(hk := "") {
     global IsLagging := !IsLagging
     global LagSwitchTL
-
-    if (!ScriptActive or !WinExist("ahk_exe clumsy.exe") or !CheckBoxLagSwitchBOOL) {
-        return
-    }
 
     ; IF TURNING OFF
     if (!IsLagging) {
@@ -283,10 +259,6 @@ LagSwitchCount() {
 #HotIf ScriptActive
 ; -- Pressure Jump --
 PressureJump(hk := "") {
-    if (!ScriptActive) {
-        return
-    }
-
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 
@@ -328,9 +300,6 @@ PressureJump(hk := "") {
 
 ; -- Freeze Clip --
 FreezeClip(hk := "") {
-    if (!ScriptActive) {
-        return
-    }
     DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 
     global ShiftHolder := false
@@ -355,10 +324,6 @@ FreezeClip(hk := "") {
 
 ; -- Freeze Roblox --
 FreezeRoblox(hk := "") {
-    if (!ScriptActive) {
-        return
-    }
-
     global IsFrozen := !IsFrozen
 
     ; Freeze/Unfreeze
@@ -421,7 +386,7 @@ FreezeCount() { ; useless function
         SetTimer(FreezeCount, 0)
     }
 }
-#HotIf
+HotIf()
 
 ; -- Shift Holder --
 ~$*LShift:: {
@@ -1188,7 +1153,8 @@ KeybindModifier(*) {
     global FreezeClipHelp, FreezeRobloxHelp, ResetSprintToggleHelp, ShowOrMinimizeHelp
     global CloseMacroHelp, IncreaseGunAmountHelp, DecreaseGunAmountHelp
 
-    KeybindStringAdd := "~*$"
+    KeybindStringAdd := "*$"
+    KeybindStringAdd2 := "~*$"
     HelpText := ""
 
     Keybinds := [
@@ -1251,6 +1217,12 @@ KeybindModifier(*) {
         "DecreaseGunAmountHelp"
     ]
 
+    NonHotIfs := [
+        "MainToggleKeybindString",
+        "ShowOrMinimizeKeybindString",
+        "CloseMacroKeybindString"
+    ]
+
     for i, KeybindObject in Keybinds {
         CurText := KeybindObject.Value
         HelpText := HelpGuiVariables[i]
@@ -1272,7 +1244,7 @@ KeybindModifier(*) {
 
         ; Modifies strings and stuff
         if (CurText == "LMB") {
-            %VarName% := KeybindStringAdd . "LButton"
+            %VarName% := KeybindStringAdd2 . "LButton"
 
             if (VarName == "FastGunSwapKeybindString") {
                 SecondaryFastGunSwapKeybindString := "LButton"
@@ -1296,8 +1268,25 @@ KeybindModifier(*) {
 
         ; Bind new hotkey
         Try {
+            IsNonHotif := false
+
+            for x, NonHotIfCheck in NonHotIfs {
+                if (String(VarName) == String(NonHotIfCheck)) {
+                    IsNonHotIf := true
+                    break
+                }
+            }
+
+            if (IsNonHotIf) {
+                HotIf()
+            } else {
+                HotIf (*) => ScriptActive
+            }
+
             Hotkey(CurAssignedHotkey, FuncName.Bind())
             Hotkey(CurAssignedHotkey, "On")
+
+            HotIf()
         }
     }
     GunAmountVar := Guns.Value
@@ -1335,13 +1324,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.2")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.3")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Fixed unwanted delays for multiple features", FirstLog)
+        AddText("Fixed buggy inputs (hopefully)", FirstLog)
 
         ; 2
         ;AddText("Fast gun swap's toggle feature no longer has a 1ms delay", DoubleLog)
