@@ -905,7 +905,7 @@ SettingsGui() {
         ; Lag switch name
         KeybindYAnchor += 30
         GuiSetting.SetFont("s15 bold cWhite", "Consolas")
-        GuiSetting.Add("Text", "x" FirstSettingNameX " y" KeybindYAnchor " w150", "Fast Gun Swap")
+        GuiSetting.Add("Text", "x" FirstSettingNameX " y" KeybindYAnchor " w150", "Lag Switch")
         EqualSignFunc()
 
         ; Lag switch editbox
