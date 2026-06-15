@@ -114,6 +114,7 @@ ShootGun() {
         return
     }
 
+    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     Loop GunAmountVar {
         i++
 
@@ -122,11 +123,13 @@ ShootGun() {
         }
 
         Send "{Blind}{" i "}"
-        SuperSleep(Number(ShootDelay.Value))
+        DllCall("Sleep", "UInt", Number(ShootDelay.Value)) 
         Click
-        SuperSleep(Number(ShootDelay.Value))
+        DllCall("Sleep", "UInt", Number(ShootDelay.Value)) 
+
     }
     i := 0
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Shuffle Reload --
@@ -137,14 +140,16 @@ ShuffleReload(hk := "") {
         return
     }
 
+    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     Loop GunAmountVar {
         i++
 
         Send "{Blind}{" i "}"
-        SuperSleep(Number(ReloadDelay.Value))
+        DllCall("Sleep", "UInt", Number(ReloadDelay.Value)) 
         Send "{Blind}r"
     }
     i := 0
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
@@ -290,6 +295,7 @@ PressureJump(hk := "") {
         return
     }
 
+    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     if Number(MousePointerSpeed_Input.Value) < 4
         MousePointerSpeed_Input.Value := 4
 
@@ -297,7 +303,7 @@ PressureJump(hk := "") {
     global Turn180Var := float(WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)))
 
     Send "{Blind}c"
-    SuperSleep(6)
+    DllCall("Sleep", "UInt", 6) 
 
     Send "{Space down}"
     Sleep(60)
@@ -316,6 +322,7 @@ PressureJump(hk := "") {
         }
     }
 
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
     global IsCrouching := false
 }
 
@@ -324,6 +331,7 @@ FreezeClip(hk := "") {
     if (!ScriptActive) {
         return
     }
+    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
@@ -334,13 +342,15 @@ FreezeClip(hk := "") {
 
     Send "{Blind}c"
 
-    SuperSleep(1)
+    DllCall("Sleep", "UInt", 1) 
 
     freeze(1) ; starts freezing roblox
 
     Sleep(850)
 
     freeze(2) ; stops freezing roblox
+
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Freeze Roblox --
@@ -540,13 +550,14 @@ MinimizeOrShowGUI(hk := "") {
 ; -- Panic Exit --
 ; Already done
 
-; -- Function to kill the macro --
+; -- Macro close --
 StopMacro(hk := "") {
     Send "{LShift up}"
 
     try ProcessClose("AutoHotkey64.exe")
     try ProcessClose("AutoHotkey.exe")
-
+    try WinClose("ahk_exe clumsy.exe")
+    
     ExitApp()
 }
 
@@ -1112,7 +1123,7 @@ SettingsGui() {
                         ; turns off lag switch
                         WinWait("ahk_exe clumsy.exe")
                         BlockInput true
-                        Sleep(20)
+                        Sleep(50)
                         BlockInput false
                         Try {
                             ControlClick("Button2", "ahk_exe clumsy.exe")
@@ -1324,19 +1335,19 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.1")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.2")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Fast gun swap keybind is now customizable", FirstLog)
+        AddText("Fixed unwanted delays for multiple features", FirstLog)
 
         ; 2
-        AddText("Fast gun swap's toggle feature no longer has a 1ms delay", DoubleLog)
+        ;AddText("Fast gun swap's toggle feature no longer has a 1ms delay", DoubleLog)
 
         ; 3
-        AddText("Settings gui modified", TripleLog)
+        ;AddText("Settings gui modified", TripleLog)
 
         AddText(ChangeLogTextInput, YposInput) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
