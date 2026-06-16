@@ -343,9 +343,9 @@ FreezeRoblox(hk := "") {
 
 ; -- Freeze Functions --
 freeze(FreezeChoice) {
-    targetWin := WinExist("ahk_exe RobloxPlayerBeta.exe") 
-                 ? "ahk_exe RobloxPlayerBeta.exe" 
-                 : "ahk_exe ApplicationFrameHost.exe"
+    targetWin := WinExist("ahk_exe RobloxPlayerBeta.exe")
+        ? "ahk_exe RobloxPlayerBeta.exe"
+        : "ahk_exe ApplicationFrameHost.exe"
 
     if !WinExist(targetWin) {
         TrayTip("Roblox not found")
@@ -362,12 +362,11 @@ freeze(FreezeChoice) {
     if (!hThread) {
         HideTrayTip()
         TrayTip("Failed to connect to roblox window")
-        SetTimer(HideTrayTip, 1500)
         return
     }
 
     ; Switch statement
-    switch(FreezeChoice) {
+    switch (FreezeChoice) {
         case 1:
             DllCall("Kernel32.dll\SuspendThread", "Ptr", hThread)
         case 2:
@@ -520,11 +519,15 @@ MinimizeOrShowGUI(hk := "") {
 ; -- Macro close --
 StopMacro(hk := "") {
     Send "{LShift up}"
+    
+    try WinClose("ahk_exe clumsy.exe")
+    DllCall("Winmm\timeEndPeriod", "UInt", 1)
 
+    ; Close autohotkey
     try ProcessClose("AutoHotkey64.exe")
     try ProcessClose("AutoHotkey.exe")
-    try WinClose("ahk_exe clumsy.exe")
 
+    ; If closing fails
     ExitApp()
 }
 
@@ -535,23 +538,26 @@ MainGUI() {
     ; black thing
     GuiThing := Gui("-Caption +AlwaysOnTop")
     GuiThing.BackColor := "000000" ; black hex code
-    WinSetRegion("0-0 w270 h65 r15-15", GuiThing.Hwnd)
 
     ; Shift Holder Gui
-    GuiThing.SetFont("s6 bold cWhite", "Arial")
-    ShiftHolderStatus := GuiThing.Add("Text", "x95 y0 w30 h15 Center 0x200 BackgroundFF0000 -0x100 0x1 Hidden", "SPRINT")
+    GuiThing.SetFont("s7 bold cWhite", "Arial")
+    ShiftHolderStatus := GuiThing.Add("Text", "x110 y0 w34 h15 Center 0x200 BackgroundFF0000 Hidden", "SPRINT")
 
     ; Lag switch gui
     GuiThing.SetFont("s7 bold cWhite", "Arial")
-    LagSwitchStatus := GuiThing.Add("Text", "x75 y0 w15 h15 Center 0x200 BackgroundFF0000 -0x100 0x1 Hidden", LagSwitchTL)
+    LagSwitchStatus := GuiThing.Add("Text", "x94 y0 w15 h15 Center 0x200 BackgroundFF0000 Hidden", LagSwitchTL)
 
     ; Title
     GuiThing.SetFont("s12 bold cWhite", "Segoe UI")
-    GuiThing.Add("Text", "x72 y14 w150", "Prison Life Macro")
+    GuiThing.Add("Text", "x71 y13 w145 BackgroundTrans", "Prison Life Macro")
+
+    ; Credit
+    GuiThing.SetFont("s4 bold cWhite", "Consolas")
+    GuiThing.Add("Text", "xp+3 yp+21 w130 BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
 
     ; On/Off button
     GuiThing.SetFont("s23 bold cWhite", "Arial")
-    global StatusLabel := GuiThing.Add("Text", "x0 y0 w60 h50 0x200 BackgroundFF0000 -0x100 0x1", "OFF")
+    global StatusLabel := GuiThing.Add("Text", "x0 y0 w60 h55 0x200 BackgroundFF0000 -0x100 0x1", "OFF")
 
     ; X button
     GuiThing.SetFont("s10 cWhite", "Arial")
@@ -567,15 +573,14 @@ MainGUI() {
 
     ; Guns To Swap Status
     GuiThing.SetFont("s6 bold cWhite", "Arial")
-    GuiThing.Add("Text", "x115 y39 w100 h15 Center 0x200", "Guns to swap:")
-    GunsAmountStatus := GuiThing.Add("Text", "x200 y39 w10 h15 Center 0x200", 0)
+    GuiThing.Add("Text", "x120 y39 w100 h15 Center 0x200 BackgroundTrans", "Guns to swap:")
+    GunsAmountStatus := GuiThing.Add("Text", "xp+80 yp w10 h15 Center 0x200 BackgroundTrans", 0)
     global GunsAmountStatus
 
-    ; Credit
-    GuiThing.SetFont("s4 bold cWhite", "Consolas")
-    GuiThing.Add("Text", "x75 y35 w130", "Made By @Idkwhattonamethis223 On Youtube")
-
-    GuiThing.Show("w260 h50") ; shows the ui
+    MainGuiW := 270
+    MaingGuiH := 65
+    GuiThing.Show("y700 w" MainGuiW " h" MaingGuiH "") ; shows the ui
+    WinSetRegion("0-0 w" MainGuiW " h" MaingGuiH " r15-15", GuiThing.Hwnd)
 }
 
 ; -- Help GUI --
@@ -592,8 +597,8 @@ HelpGui() {
         GuiHelp.Add("Text", "x150 y0 w370 Center", "Macro Help")
 
         ; X button for help GUI
-        GuiHelp.SetFont("s13 bold cWhite", "Arial")
-        GuiHelp.Add("Text", "x634 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
+        GuiHelp.SetFont("s17 bold cWhite", "Arial")
+        GuiHelp.Add("Text", "x625 y0 w40 h25 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
 
         HideHelp(*) {
             GuiHelp.Hide()
@@ -1002,14 +1007,7 @@ SettingsGui() {
             GuiSetting.Hide()
             global IsSettingsVisible := false
 
-            if (GunsSettingEditbox.Value > 10) {
-                GunsSettingEditbox.Value := 10
-            }
-            GunAmountVar := GunsSettingEditbox.Value
-            GunsAmountStatus.Value := GunsSettingEditbox.Value
-
-            GunsSettingEditbox.Redraw()
-            GunsAmountStatus.Redraw()
+            UpdateGunVarsForSettingGui()
 
             SetTimer(KeybindModifier, 0)
         }
@@ -1295,19 +1293,10 @@ KeybindModifier(*) {
             HotIf()
         }
     }
-    global GunAmountVar, GunsSettingEditbox
-    if (GunsSettingEditbox.Value > 10) {
-        GunsSettingEditbox.Value := 10
-    }
-    GunAmountVar := GunsSettingEditbox.Value
-    GunsAmountStatus.Value := GunsSettingEditbox.Value
-
-    GunsSettingEditbox.Redraw()
-    GunsAmountStatus.Redraw()
+    UpdateGunVarsForSettingGui()
 
     HideTrayTip()
     TrayTip("Applied Settings")
-    SetTimer(HideTrayTip, 1500)
 }
 
 ; Hold or toggle fast gun swap
@@ -1317,6 +1306,31 @@ FastGunSwapHoldOrToggle(*) {
 
     FastGunSwapChoiceStatus.Value := FastGunSwapChoiceIsHold ? "Hold" : "Toggle"
     FastGunSwapChoiceStatus.Redraw()
+}
+
+UpdateGunVarsForSettingGui() {
+    global GunsSettingEditbox, GunAmountVar, GunsAmountStatus
+
+    if (ShootDelay.Value < 1) {
+        MsgBox("
+        (Join
+            Your pc can't handle 0 ms delay except if you somehow have 1000+ fps.
+            `nShoot delay is automatically set to 1 ms
+        )",
+        "Warning",
+        0x1000)
+        ShootDelay.Value := 1
+    }
+
+    if (GunsSettingEditbox.Value > 10) {
+        GunsSettingEditbox.Value := 10
+    }
+
+    GunAmountVar := GunsSettingEditbox.Value
+    GunsAmountStatus.Value := GunsSettingEditbox.Value
+
+    GunsSettingEditbox.Redraw()
+    GunsAmountStatus.Redraw()
 }
 
 ; -- Change Log Gui --
@@ -1334,19 +1348,26 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.7")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V2.8")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Default setting of shoot delay is now 4ms", FirstLog)
+        AddText("Added a safety feature for fast gun swap", FirstLog)
 
         ; 2
-        AddText("Help gui modified", DoubleLog)
-        
+        AddText("Close button for help gui is bigger", DoubleLog)
+
         ; 3
-        AddText("Freeze clip and freeze roblox works again", OneLog)
+        AddText("Relocated sprint holder status and lag switch status", DoubleLog)
+
+        ; 4
+        AddText("Improved macro closing", TripleLog)
+
+        ; Credit in Change Log GUI
+        GuiChangeLog.SetFont("s10 cWhite", "Consolas")
+        GuiChangeLog.Add("Text", "x0 y380 w360 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         AddText(ChangeLogTextInput, YposInput) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
@@ -1366,10 +1387,6 @@ ChangeLogGui() {
             global IsChangeLogVisible := false
         }
 
-        ; Credit in Change Log GUI
-        GuiChangeLog.SetFont("s10 cWhite", "Consolas")
-        GuiChangeLog.Add("Text", "x0 y340 w360 Center", "Made By @Idkwhattonamethis223 On Youtube")
-
         ChangeLogGuiShow := true
     }
 
@@ -1378,7 +1395,7 @@ ChangeLogGui() {
     ; Shows/closes changelog GUI
     if (IsChangeLogVisible) {
         ChangeLogW := 450
-        ChangeLogH := 450
+        ChangeLogH := 500
         GuiChangeLog.Show("w" ChangeLogW " h" ChangeLogH "")
         WinSetRegion("0-0 w" ChangeLogW " h" ChangeLogH " r20-20", GuiChangeLog.Hwnd)
     } else {
@@ -1391,11 +1408,10 @@ HideTrayTip() {
     TrayTip() ; Clears tray tip
 
     if (SubStr(A_OSVersion, 1, 3) = "10.") { ; Hides tray trip
-        A_IconHidden := true
-        Sleep 200
         A_IconHidden := false
     }
-    SetTimer(HideTrayTip, 0)
+
+    SetTimer(HideTrayTip, 0) ; if i decide to use SetTimer
 }
 
 ; -- Sleep below 10ms --
