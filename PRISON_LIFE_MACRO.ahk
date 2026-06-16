@@ -1252,7 +1252,7 @@ KeybindModifier(*) {
 
         ; Modifies strings and stuff
         if (CurText == "LMB") {
-            %VarName% := KeybindStringAdd2 . "LButton"
+            %VarName% := KeybindStringAdd . "LButton"
 
             if (VarName == "FastGunSwapKeybindString") {
                 SecondaryFastGunSwapKeybindString := "LButton"
@@ -1336,16 +1336,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.4")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.5")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Fixed sprint toggle bug", FirstLog)
+        AddText("Fixed a fast gun swap issue", FirstLog)
 
         ; 2
-        AddText("Added more safety features for gun related macros", DoubleLog)
+        ;AddText("Added more safety features for gun related macros", DoubleLog)
         
         ; 3
         ;AddText("Settings gui modified", TripleLog)
