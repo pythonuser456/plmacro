@@ -191,6 +191,10 @@ IncreaseGunAmountFunc(hk := "") {
 
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
+    if (!CheckBoxLagSwitchBOOL or !WinExist("ahk_exe clumsy.exe")) {
+        return
+    }
+
     global IsLagging := !IsLagging
     global LagSwitchTL
 
@@ -318,7 +322,7 @@ FreezeClip(hk := "") {
 
     freeze(1) ; starts freezing roblox
 
-    Sleep(850)
+    Sleep(750)
 
     freeze(2) ; stops freezing roblox
 
@@ -339,45 +343,39 @@ FreezeRoblox(hk := "") {
 
 ; -- Freeze Functions --
 freeze(FreezeChoice) {
-    targetProcess := "RobloxPlayerBeta.exe"
-    pid := ProcessExist(targetProcess)
+    targetWin := WinExist("ahk_exe RobloxPlayerBeta.exe") 
+                 ? "ahk_exe RobloxPlayerBeta.exe" 
+                 : "ahk_exe ApplicationFrameHost.exe"
 
-    if (!pid) {
-        ToolTip("Roblox not found")
-        SetTimer(() => ToolTip(), -1500)
+    if !WinExist(targetWin) {
+        TrayTip("Roblox not found")
+        SetTimer(HideTrayTip, 1500)
         return
     }
 
-    switch (FreezeChoice) {
+    pid := 0
+    winThreadId := DllCall("User32.dll\GetWindowThreadProcessId", "Ptr", WinExist(targetWin), "Ptr*", pid, "UInt")
+
+    ; (0x1F0FFF)
+    hThread := DllCall("Kernel32.dll\OpenThread", "UInt", 0x1F0FFF, "Int", false, "UInt", winThreadId, "Ptr")
+
+    if (!hThread) {
+        HideTrayTip()
+        TrayTip("Failed to connect to roblox window")
+        SetTimer(HideTrayTip, 1500)
+        return
+    }
+
+    ; Switch statement
+    switch(FreezeChoice) {
         case 1:
-            ToggleProcessState(pid, true)
+            DllCall("Kernel32.dll\SuspendThread", "Ptr", hThread)
         case 2:
-            ToggleProcessState(pid, false)
+            DllCall("Kernel32.dll\ResumeThread", "Ptr", hThread)
     }
 
-    SetTimer(() => ToolTip(), -1500)
-}
-
-ToggleProcessState(pid, Freeze) {
-    ; Suspend/resume privileges (0x0800)
-    hProcess := DllCall("Kernel32.dll\OpenProcess", "UInt", 0x0800, "Int", false, "UInt", pid, "Ptr")
-    if (!hProcess) {
-        MsgBox("Allow admin permissions")
-        SetTimer(() => ToolTip(), -1500)
-        return false
-    }
-
-    ; Suspend/Resume
-    if (Freeze) {
-        DllCall("ntdll.dll\NtSuspendProcess", "Ptr", hProcess)
-    } else {
-        ; Call NtResumeProcess
-        DllCall("ntdll.dll\NtResumeProcess", "Ptr", hProcess)
-    }
-
-    ; Clean Up
-    DllCall("Kernel32.dll\CloseHandle", "Ptr", hProcess)
-    return true
+    ; Clean up
+    DllCall("Kernel32.dll\CloseHandle", "Ptr", hThread)
 }
 
 FreezeCount() { ; useless function
@@ -684,7 +682,7 @@ HelpGui() {
             To use the fast weapon swap macro,
              you need to type in how many guns you have
              in the settings or use the O/P keybinds.
-             The recommended shoot delay is 5ms. 
+             The recommended shoot delay is 4ms (also works for 30 fps). 
         )")
 
         ; Lag Switch Help
@@ -738,7 +736,7 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 720
+        HelpGuiH := 730
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
     } else {
@@ -782,7 +780,7 @@ SettingsGui() {
 
         ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ShootDelay := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", 5)
+        ShootDelay := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", 4)
 
         ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
@@ -1336,19 +1334,19 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.6")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.7")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Default setting of shoot delay is back to 5ms", FirstLog)
+        AddText("Default setting of shoot delay is now 4ms", FirstLog)
 
         ; 2
-        AddText("Help gui modified again", TripleLog)
+        AddText("Help gui modified", DoubleLog)
         
         ; 3
-        ;AddText("Settings gui modified", TripleLog)
+        AddText("Freeze clip and freeze roblox works again", OneLog)
 
         AddText(ChangeLogTextInput, YposInput) {
             GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
