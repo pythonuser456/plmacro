@@ -684,7 +684,7 @@ HelpGui() {
             To use the fast weapon swap macro,
              you need to type in how many guns you have
              in the settings or use the O/P keybinds.
-             The recommended shoot delay is 6ms. 
+             The recommended shoot delay is 5ms. 
         )")
 
         ; Lag Switch Help
@@ -782,7 +782,7 @@ SettingsGui() {
 
         ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ShootDelay := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", 6)
+        ShootDelay := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", 5)
 
         ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
@@ -1342,10 +1342,10 @@ ChangeLogGui() {
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Actually fixed fast gun swap issue", FirstLog)
+        AddText("Default setting of shoot delay is back to 5ms", FirstLog)
 
         ; 2
-        AddText("Help gui modified a little bit", DoubleLog)
+        AddText("Help gui modified again", TripleLog)
         
         ; 3
         ;AddText("Settings gui modified", TripleLog)
