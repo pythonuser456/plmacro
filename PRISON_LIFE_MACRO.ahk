@@ -120,7 +120,6 @@ ShootGun() {
         DllCall("Sleep", "UInt", Number(ShootDelay.Value))
     }
     i := 0
-    Send "{Blind}1"
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
@@ -684,7 +683,8 @@ HelpGui() {
         (Join
             To use the fast weapon swap macro,
              you need to type in how many guns you have
-             in the settings or use the O/P keybinds
+             in the settings or use the O/P keybinds.
+             The recommended shoot delay is 6ms. 
         )")
 
         ; Lag Switch Help
@@ -738,7 +738,7 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 710
+        HelpGuiH := 720
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
     } else {
@@ -782,7 +782,7 @@ SettingsGui() {
 
         ; Editbox
         GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-        ShootDelay := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", 5)
+        ShootDelay := GuiSetting.AddEdit("xp+" EditBoxX " yp+4 w25 h25 0x200 +Number", 6)
 
         ; Milisecond disclamer
         GuiSetting.SetFont("s8 bold cWhite", "Consolas")
@@ -1336,16 +1336,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.5")
+        GuiChangeLog.Add("Text", "x0 y0 w360 Center", "Change Log V2.6")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Fixed a fast gun swap issue", FirstLog)
+        AddText("Actually fixed fast gun swap issue", FirstLog)
 
         ; 2
-        ;AddText("Added more safety features for gun related macros", DoubleLog)
+        AddText("Help gui modified a little bit", DoubleLog)
         
         ; 3
         ;AddText("Settings gui modified", TripleLog)
