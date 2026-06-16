@@ -5,6 +5,7 @@
 ProcessSetPriority "High"
 SetControlDelay(-1)
 #MaxThreadsPerHotkey 2
+DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
 
 ; -- Variables --
 ScriptActive := false
@@ -106,7 +107,7 @@ FastGunSwap(hk := "") {
 ShootGun() {
     global GunAmountVar, i, ShootDelay
 
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     Loop GunAmountVar {
         i++
 
@@ -115,19 +116,21 @@ ShootGun() {
         }
 
         Send "{Blind}{" i "}"
-        DllCall("Sleep", "UInt", Number(ShootDelay.Value))
+        ;DllCall("Sleep", "UInt", Number(ShootDelay.Value))
+        SuperSleep(Number(ShootDelay.Value))
         Click
-        DllCall("Sleep", "UInt", Number(ShootDelay.Value))
+        ;DllCall("Sleep", "UInt", Number(ShootDelay.Value))
+        SuperSleep(Number(ShootDelay.Value))
     }
     i := 0
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
     global i, Guns
 
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     Loop GunAmountVar {
         i++
 
@@ -136,11 +139,12 @@ ShuffleReload(hk := "") {
         }
 
         Send "{Blind}{" i "}"
-        DllCall("Sleep", "UInt", Number(ReloadDelay.Value))
+        ;DllCall("Sleep", "UInt", Number(ReloadDelay.Value))
+        SuperSleep(ReloadDelay.Value)
         Send "{Blind}r"
     }
     i := 0
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeEndPeriod", "UInt", 1)
 
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
@@ -1348,22 +1352,22 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V2.8")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.0")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Added a safety feature for fast gun swap", FirstLog)
+        AddText("Improved fast gun swap", FirstLog)
 
         ; 2
-        AddText("Close button for help gui is bigger", DoubleLog)
+        AddText("Improved shuffle reload", DoubleLog)
 
         ; 3
-        AddText("Relocated sprint holder status and lag switch status", DoubleLog)
+        ;AddText("Relocated sprint holder status and lag switch status", DoubleLog)
 
         ; 4
-        AddText("Improved macro closing", TripleLog)
+        ;AddText("Improved macro closing", TripleLog)
 
         ; Credit in Change Log GUI
         GuiChangeLog.SetFont("s10 cWhite", "Consolas")
@@ -1416,16 +1420,20 @@ HideTrayTip() {
 
 ; -- Sleep below 10ms --
 SuperSleep(ms) {
-    DllCall("QueryPerformanceFrequency", "Int64*", &freq := 0)
+    if (ms <= 0) {
+        DllCall("Sleep", "UInt", 0) 
+        return
+    }
+    
+    static freq := 0
+    if (!freq)
+        DllCall("QueryPerformanceFrequency", "Int64*", &freq)
+    
     DllCall("QueryPerformanceCounter", "Int64*", &start := 0)
-
     target := start + (ms * freq / 1000)
-    current := 0
-
+    
     loop {
-        Sleep(-1)
-
-        DllCall("QueryPerformanceCounter", "Int64*", &current)
+        DllCall("QueryPerformanceCounter", "Int64*", &current := 0)
         if (current >= target)
             break
     }
