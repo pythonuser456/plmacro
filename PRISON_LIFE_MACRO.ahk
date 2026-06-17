@@ -278,7 +278,7 @@ PressureJump(hk := "") {
         return
     }
 
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     if Number(MousePointerSpeed_Input.Value) < 4
         MousePointerSpeed_Input.Value := 4
 
@@ -286,7 +286,8 @@ PressureJump(hk := "") {
     global Turn180Var := float(WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)))
 
     Send "{Blind}c"
-    DllCall("Sleep", "UInt", 6)
+    ;DllCall("Sleep", "UInt", 6)
+    SuperSleep(7)
 
     Send "{Space down}"
     Sleep(60)
@@ -305,13 +306,13 @@ PressureJump(hk := "") {
         }
     }
 
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeEndPeriod", "UInt", 1)
     global IsCrouching := false
 }
 
 ; -- Freeze Clip --
 FreezeClip(hk := "") {
-    DllCall("Winmm\timeBeginPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
@@ -319,18 +320,19 @@ FreezeClip(hk := "") {
     Send "{LShift up}"
     ShiftHolderStatus.Opt("BackgroundFF0000")
     ShiftHolderStatus.Redraw()
-
+    
     Send "{Blind}c"
 
-    DllCall("Sleep", "UInt", 1)
+    ;DllCall("Sleep", "UInt", 1)
+    SuperSleep(15)
 
     freeze(1) ; starts freezing roblox
 
-    Sleep(750)
+    Sleep(450)
 
     freeze(2) ; stops freezing roblox
 
-    DllCall("Winmm\timeEndPeriod", "UInt", 1)
+    ;DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Freeze Roblox --
@@ -545,11 +547,11 @@ MainGUI() {
 
     ; Shift Holder Gui
     GuiThing.SetFont("s7 bold cWhite", "Arial")
-    ShiftHolderStatus := GuiThing.Add("Text", "x110 y0 w34 h15 Center 0x200 BackgroundFF0000 Hidden", "SPRINT")
+    ShiftHolderStatus := GuiThing.Add("Text", "x77 y0 w34 h15 Center 0x200 BackgroundFF0000 Hidden", "SPRINT")
 
     ; Lag switch gui
     GuiThing.SetFont("s7 bold cWhite", "Arial")
-    LagSwitchStatus := GuiThing.Add("Text", "x94 y0 w15 h15 Center 0x200 BackgroundFF0000 Hidden", LagSwitchTL)
+    LagSwitchStatus := GuiThing.Add("Text", "x61 y0 w15 h15 Center 0x200 BackgroundFF0000 Hidden", LagSwitchTL)
 
     ; Title
     GuiThing.SetFont("s12 bold cWhite", "Segoe UI")
@@ -583,7 +585,7 @@ MainGUI() {
 
     MainGuiW := 270
     MaingGuiH := 65
-    GuiThing.Show("y700 w" MainGuiW " h" MaingGuiH "") ; shows the ui
+    GuiThing.Show("y740 w" MainGuiW " h" MaingGuiH "") ; shows the ui
     WinSetRegion("0-0 w" MainGuiW " h" MaingGuiH " r15-15", GuiThing.Hwnd)
 }
 
@@ -1097,12 +1099,14 @@ SettingsGui() {
                         WinWait("ahk_exe clumsy.exe")
                         BlockInput true
                         Sleep(50)
-                        BlockInput false
                         Try {
                             ControlClick("Button2", "ahk_exe clumsy.exe")
+                            WinMinimize("ahk_exe clumsy.exe")
                         } catch {
                             ControlClick("Button2", "ahk_exe clumsy.exe")
+                            WinMinimize("ahk_exe clumsy.exe")
                         }
+                        BlockInput false
                     } else {
                         if WinExist("ahk_exe clumsy.exe") {
                             WinClose("ahk_exe clumsy.exe")
@@ -1352,19 +1356,19 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.0")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.1")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Improved fast gun swap", FirstLog)
+        AddText("Improved clumsy auto open", FirstLog)
 
         ; 2
-        AddText("Improved shuffle reload", DoubleLog)
+        AddText("Relocated lag switch status and sprint holder status", DoubleLog)
 
         ; 3
-        ;AddText("Relocated sprint holder status and lag switch status", DoubleLog)
+        AddText("Fixed freeze clip", TripleLog)
 
         ; 4
         ;AddText("Improved macro closing", TripleLog)
