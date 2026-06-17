@@ -1090,8 +1090,8 @@ SettingsGui() {
                         }
                     }
                     if (!WinExist("ahk_exe clumsy.exe") && FileExist(ClumsyPath)) {
-                        ProcessClose("clumsy.exe")
-                        Sleep(200)
+                        Try ProcessClose("clumsy.exe")
+                        Sleep(500)
 
                         Run('*RunAs "' ClumsyPath '" --filter "' FilterConfig '" --lag on --lag-time 5000 --drop on --drop-chance 100 --throttle on --throttle-chance 100 --throttle-frame 1000')
 
@@ -1363,7 +1363,7 @@ ChangeLogGui() {
 
         ; 1
         AddText("Improved clumsy auto open", FirstLog)
-
+        
         ; 2
         AddText("Relocated lag switch status and sprint holder status", DoubleLog)
 
