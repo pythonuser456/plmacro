@@ -700,13 +700,13 @@ HelpGui() {
 
             CurKeybindVar := KeybindSettingsVars[i]
             CurHelpString := HelpStrings[i]
-            
+
             if (i == 1) {
                 %CurOject% := GuiHelp.Add("Text", "xp+60 yp+45 w60 BackgroundTrans", StrUpper((%CurKeybindVar%).Value))
             } else {
                 %CurOject% := GuiHelp.Add("Text", "xp y+5 w60 BackgroundTrans", StrUpper((%CurKeybindVar%).Value))
             }
-            
+
             ; Help name
             GuiHelp.Add("Text", "xp yp w330 Center BackgroundTrans", CurHelpString)
         }
@@ -718,7 +718,8 @@ HelpGui() {
                 To use the fast weapon swap macro,
                  you need to select your inventory slots where your guns are
                  in the settings or use the O/P keybinds.
-                 The recommended shoot delay is 4ms (also works for 30 fps)
+                 The recommended shoot delay for 60+ fps is 1 milisecond.
+                 And the recommended shoot delay for 30 fps is 4 milisecond (so your pc doesn't get fried)
             )",
             " ; lag switch info
             (Join
@@ -784,7 +785,7 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 730
+        HelpGuiH := 750
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
     } else {
@@ -888,12 +889,13 @@ SettingsGui() {
 
         ; -- Other settings --
         OtherSettingsNames := [
-            "Shoot Delay", "Reload Delay", "Pressure Jump",
-            "Sprint Toggle", "Lag Switch", "Sound Beep Toggle"
+            "Shoot Delay", "milisecond1", "Reload Delay",
+            "milisecond2", "Pressure Jump", "Sprint Toggle",
+            "Lag Switch", "Sound Beep Toggle"
         ]
 
         OtherSettingsEditbox := [
-            "ShootDelayEditbox", "ReloadDelayEditbox"
+            "ShootDelayEditbox", 0, "ReloadDelayEditbox", 0
         ]
 
         OtherSettingsEditboxValue := [
@@ -916,10 +918,23 @@ SettingsGui() {
             static CheckBoxX := OtherSettingsEditboxX - 1
 
             if (CurName == "Pressure Jump") {
-                OtherSettingGuiNameY += 10
+                OtherSettingGuiNameY += 40
             }
-            if (CurName == "Sprint Toggle") {
+            else if (CurName == "Sprint Toggle") {
                 OtherSettingGuiNameY += 50
+            }
+            ; milisecond disclamer
+            else if (CurName == "milisecond1" or CurName == "milisecond2") {
+                GuiSetting.SetFont("s8 bold cWhite", "Consolas")
+                if (CurName == "milisecond1") {
+                    MilisecondDistanceDisclamer := 125
+                } else if (CurName == "milisecond2") {
+                    MilisecondDistanceDisclamer := 115
+                }
+
+                GuiSetting.Add("Text", "xp-" MilisecondDistanceDisclamer " yp+10 w100 BackgroundTrans", "(milisecond)")
+
+                continue
             }
             else if (i > 1) {
                 OtherSettingGuiNameY += 30
@@ -964,7 +979,7 @@ SettingsGui() {
             else {
                 GuiSetting.SetFont("s12 cBlack")
 
-                CurCheckboxCount := i - 3
+                CurCheckboxCount := i - 5
                 CurCheckbox := OtherSettingsCheckbox[CurCheckboxCount]
 
                 ; checkbox
@@ -1396,16 +1411,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.5")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.6")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Reworked gun selection", FirstLog)
+        AddText("Added a milisecond disclamer in settings", FirstLog)
 
         ; 2
-        AddText("Help Gui and Settings Gui recoded", DoubleLog)
+        AddText("Help gui modified", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
