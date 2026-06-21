@@ -3,9 +3,10 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ProcessSetPriority "High"
-SendMode "Input" ; <<
-SetKeyDelay -1, -1 ; <<
-SetMouseDelay -1 ; <<
+SendMode "Input"
+SetKeyDelay -1, -1
+SetMouseDelay -1
+ListLines 0
 SetControlDelay(-1)
 #MaxThreadsPerHotkey 2
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
@@ -327,7 +328,6 @@ PressureJump(hk := "") {
         return
     }
 
-    ;DllCall("Winmm\timeBeginPeriod", "UInt", 1)
     if Number(MousePointerSpeed_Input.Value) < 4
         MousePointerSpeed_Input.Value := 4
 
@@ -335,8 +335,7 @@ PressureJump(hk := "") {
     global Turn180Var := float(WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)))
 
     Send "{Blind}c"
-    ;DllCall("Sleep", "UInt", 6)
-    SuperSleep(7)
+    Sleep(17)
 
     Send "{Space down}"
     Sleep(60)
@@ -355,24 +354,23 @@ PressureJump(hk := "") {
         }
     }
 
-    ;DllCall("Winmm\timeEndPeriod", "UInt", 1)
     global IsCrouching := false
 }
 
 ; -- Freeze Clip --
 FreezeClip(hk := "") {
-    ;DllCall("Winmm\timeBeginPeriod", "UInt", 1)
-
+    ; turn off vars for sprint holder
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
     global IsChatting := false
     Send "{LShift up}"
+
+    ; turn off sprint gui
     ShiftHolderStatus.Opt("BackgroundFF0000")
     ShiftHolderStatus.Redraw()
 
     Send "{Blind}c"
 
-    ;DllCall("Sleep", "UInt", 1)
     SuperSleep(15)
 
     freeze(1) ; starts freezing roblox
@@ -380,8 +378,6 @@ FreezeClip(hk := "") {
     Sleep(450)
 
     freeze(2) ; stops freezing roblox
-
-    ;DllCall("Winmm\timeEndPeriod", "UInt", 1)
 }
 
 ; -- Freeze Roblox --
@@ -395,6 +391,34 @@ FreezeRoblox(hk := "") {
         freeze(2)
     }
 }
+
+/*; -- Floofy clip -- doesnt work
+~$*e:: {
+    if (!ScriptActive) {
+        return
+    }
+
+    Send("{Space Down}")
+
+    Sleep(15)
+
+    Send("{Ctrl}") ; shiftlock
+
+    SuperSleep(5)
+
+    Send("{Blind}{c Down}") ; hold c
+
+    Sleep(32)
+
+    freeze(1) ; freeze roblox
+
+    Sleep(250)
+
+    Send("{Space Up}")
+    Send("{Blind}{c Up}")
+
+    freeze(2) ; stop freezing
+}*/
 
 ; -- Freeze Functions --
 freeze(FreezeChoice) {
@@ -742,7 +766,8 @@ HelpGui() {
                  Then crouch and shove your head fully into the object. 
                  Then press G. Also if you set your mouse pointer lower than 4 the script
                  would automatically set your mouse pointer speed to 4 in the MACRO settings
-                 so the pressure jump would work
+                 so the pressure jump would work. The more fps you have, the better the macro works. 
+                 If you only have 30 fps or 60 fps this might not work
             )",
             " ; freeze clip info
             (Join
@@ -788,7 +813,7 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 750
+        HelpGuiH := 790
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
     } else {
@@ -1355,7 +1380,7 @@ KeybindModifier(*) {
 
             Hotkey(CurAssignedHotkey, FuncName.Bind())
             Hotkey(CurAssignedHotkey, "On")
-
+            
             HotIf()
         }
     }
@@ -1414,16 +1439,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.7")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.8")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Maybe made every macro better i dont have time to test rn", FirstLog)
+        AddText("Improved performance", FirstLog)
 
         ; 2
-        ;AddText("", DoubleLog)
+        AddText("Pressure jump info in help gui modified", OneLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
