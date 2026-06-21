@@ -3,6 +3,9 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ProcessSetPriority "High"
+SendMode "Input" ; <<
+SetKeyDelay -1, -1 ; <<
+SetMouseDelay -1 ; <<
 SetControlDelay(-1)
 #MaxThreadsPerHotkey 2
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
@@ -1411,16 +1414,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.6")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.7")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Added a milisecond disclamer in settings", FirstLog)
+        AddText("Maybe made every macro better i dont have time to test rn", FirstLog)
 
         ; 2
-        AddText("Help gui modified", DoubleLog)
+        ;AddText("", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
