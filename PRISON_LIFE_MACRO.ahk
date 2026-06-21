@@ -2,12 +2,17 @@
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
+KeyHistory 0
+ListLines 0
+
 ProcessSetPriority "High"
 SendMode "Input"
+
 SetKeyDelay -1, -1
 SetMouseDelay -1
-ListLines 0
-SetControlDelay(-1)
+SetWinDelay -1
+SetControlDelay -1
+
 #MaxThreadsPerHotkey 2
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
 
@@ -1440,16 +1445,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.8")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.9")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Improved performance", FirstLog)
+        AddText("Improved performance again", FirstLog)
 
         ; 2
-        AddText("Pressure jump info in help gui modified", OneLog)
+        ;AddText("Pressure jump info in help gui modified", OneLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
