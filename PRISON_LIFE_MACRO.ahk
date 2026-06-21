@@ -418,7 +418,8 @@ FreezeRoblox(hk := "") {
     Send("{Blind}{c Up}")
 
     freeze(2) ; stop freezing
-}*/
+}
+*/
 
 ; -- Freeze Functions --
 freeze(FreezeChoice) {
