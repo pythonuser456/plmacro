@@ -1,4 +1,5 @@
 ; made by @Idkwhattonamethis223 (youtube) / @cooluser75_10906 (discord)
+; this is lowkey hardcoded
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -15,6 +16,9 @@ SetControlDelay -1
 
 #MaxThreadsPerHotkey 2
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
+
+; -- Settings load --
+SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
 
 ; -- Variables --
 ScriptActive := false
@@ -39,27 +43,6 @@ GunSlot8CheckboxBool := false
 GunSlot9CheckboxBool := false
 GunSlot10CheckboxBool := false
 
-GunSlotCheckboxBoolNames := [
-    "GunSlot1CheckboxBool", "GunSlot2CheckboxBool", "GunSlot3CheckboxBool",
-    "GunSlot4CheckboxBool", "GunSlot5CheckboxBool", "GunSlot6CheckboxBool",
-    "GunSlot7CheckboxBool", "GunSlot8CheckboxBool", "GunSlot9CheckboxBool",
-    "GunSlot10CheckboxBool"
-]
-
-GunSlotCheckboxNames := [
-    "GunSlot1Checkbox", "GunSlot2Checkbox", "GunSlot3Checkbox",
-    "GunSlot4Checkbox", "GunSlot5Checkbox", "GunSlot6Checkbox",
-    "GunSlot7Checkbox", "GunSlot8Checkbox", "GunSlot9Checkbox",
-    "GunSlot10Checkbox"
-]
-
-KeybindSettingsVars := [
-    "MainToggleKeybind", "FastGunSwapKeybind", "FastGunSwapChoiceStatus", "ShuffleReloadKeybind",
-    "LagSwitchKeybind", "PressureJumpKeybind", "FreezeClipKeybind",
-    "FreezeRobloxKeybind", "ResetSprintToggleKeybind", "ShowOrMinimizeKeybind",
-    "CloseMacroKeybind", "IncreaseGunAmount", "DecreaseGunAmount", ""
-]
-
 GunSlot1Checkbox := ""
 GunSlot2Checkbox := ""
 GunSlot3Checkbox := ""
@@ -70,6 +53,48 @@ GunSlot7Checkbox := ""
 GunSlot8Checkbox := ""
 GunSlot9Checkbox := ""
 GunSlot10Checkbox := ""
+
+GunSlotCheckboxBoolNames := [
+    "GunSlot1CheckboxBool", "GunSlot2CheckboxBool", "GunSlot3CheckboxBool",
+    "GunSlot4CheckboxBool", "GunSlot5CheckboxBool", "GunSlot6CheckboxBool",
+    "GunSlot7CheckboxBool", "GunSlot8CheckboxBool", "GunSlot9CheckboxBool",
+    "GunSlot10CheckboxBool"
+]
+
+OtherCheckboxSettingVarsValues := []
+mode := ""
+LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves", "OtherCheckboxValues", "empty") ; INI use
+
+/*if (LoadedOtherCheckboxSettings != "empty") {
+    OtherCheckboxSettingVarsValues := StrSplit(LoadedOtherCheckboxSettings, "|")
+    
+    for i, CurObject in GunSlotCheckboxBoolNames {
+        CurBoolValue := OtherCheckboxSettingVarsValues[i]
+
+        if (CurBoolValue) {
+            mode := "true"
+        } else {
+            mode := "false"
+        }
+
+        GunSlotsLogic(i, mode)
+    }
+}*/
+
+global GunSlotCheckboxNames := [
+    "GunSlot1Checkbox", "GunSlot2Checkbox", "GunSlot3Checkbox",
+    "GunSlot4Checkbox", "GunSlot5Checkbox", "GunSlot6Checkbox",
+    "GunSlot7Checkbox", "GunSlot8Checkbox", "GunSlot9Checkbox",
+    "GunSlot10Checkbox"
+]
+
+DummyValue := { Value: 0 }
+KeybindSettingsVars := [
+    "MainToggleKeybind", "FastGunSwapKeybind", "FastGunSwapChoiceStatus", "ShuffleReloadKeybind",
+    "LagSwitchKeybind", "PressureJumpKeybind", "FreezeClipKeybind",
+    "FreezeRobloxKeybind", "ResetSprintToggleKeybind", "ShowOrMinimizeKeybind",
+    "CloseMacroKeybind", "IncreaseGunAmount", "DecreaseGunAmount", "DummyValue"
+]
 
 IsHelpVisible := false
 IsSettingsVisible := true
@@ -157,51 +182,49 @@ MainToggle(hk := "") {
 
 ; -- Fast Gun Swap --
 FastGunSwap(hk := "") {
-    global Guns, i, IsFastGunSwapHolding
+    global IsFastGunSwapHolding
+    
+    delay := Number(ShootDelayEditbox.Value)
+    
+    ActiveSlots := []
+    for index, CurObject in GunSlotCheckboxBoolNames {
+        if (%CurObject%)
+            ActiveSlots.Push(index)
+    }
 
-    ; Shoots
     if (FastGunSwapChoiceIsHold) {
         while GetKeyState(SecondaryFastGunSwapKeybindString, "P") {
-            ShootGun()
+            OptimizedShoot(ActiveSlots, delay)
         }
     }
     else {
         IsFastGunSwapHolding := !IsFastGunSwapHolding
-
-        Loop {
-            if (!IsFastGunSwapHolding) {
-                break
-            }
-            ShootGun()
+        while (IsFastGunSwapHolding) {
+            OptimizedShoot(ActiveSlots, delay)
         }
     }
 }
 
-ShootGun() {
-    global ShootDelay
-
-    for i, CurObject in GunSlotCheckboxBoolNames {
-        GunSlotVar := CurObject
-
-        if (%GunSlotVar%) {
-            Send "{Blind}{" i "}"
-            SuperSleep(Number(ShootDelayEditbox.Value))
-            Click
-            SuperSleep(Number(ShootDelayEditbox.Value))
-        }
+OptimizedShoot(ActiveSlots, delay) {
+    for SlotNum in activeSlots {
+        Send("{Blind}{" SlotNum "}")
+        SuperSleep(delay)
+        Click()
+        SuperSleep(delay)
     }
 }
 
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
     global ReloadDelay
-
+    
+    delay := Number(ReloadDelayEditbox.Value)
     for i, SlotCheck in GunSlotCheckboxBoolNames {
         GunSlotVar := SlotCheck
 
         if (%GunSlotVar%) {
             Send "{Blind}{" i "}"
-            SuperSleep(Number(ReloadDelayEditbox.Value))
+            SuperSleep(delay)
             Send "{Blind}r"
         }
     }
@@ -850,7 +873,7 @@ SettingsGui() {
         global ShuffleReloadKeybind := "", LagSwitchKeybind := "", PressureJumpKeybind := ""
         global FreezeClipKeybind := "", FreezeRobloxKeybind := "", ResetSprintToggleKeybind := ""
         global ShowOrMinimizeKeybind := "", CloseMacroKeybind := "", IncreaseGunAmount := ""
-        global DecreaseGunAmount := ""
+        global DecreaseGunAmount := "", DummyValue
 
         GuiSetting := Gui("-Caption +AlwaysOnTop")
         GuiSetting.BackColor := "000000" ; black hex code
@@ -867,19 +890,20 @@ SettingsGui() {
             "Close Macro", "Increase Gun Amount", "Decrease Gun Amount", ""
         ]
 
-        KeybindSettingsVars := [
-            "MainToggleKeybind", "FastGunSwapKeybind", "FastGunSwapChoiceStatus", "ShuffleReloadKeybind",
-            "LagSwitchKeybind", "PressureJumpKeybind", "FreezeClipKeybind",
-            "FreezeRobloxKeybind", "ResetSprintToggleKeybind", "ShowOrMinimizeKeybind",
-            "CloseMacroKeybind", "IncreaseGunAmount", "DecreaseGunAmount", ""
-        ]
+        global KeybindSettingVarsValue
+        KeybindSettingVarsValue := []
+        LoadedKeybindSettings := IniRead(SettingSavePathINI, "keybind_saves", "KeybindValues", "empty")
 
-        KeybindSettingVarsValue := [
-            "Alt", "LMB", 0, "r",
-            "t", "g", "b",
-            "y", "m", "f4",
-            "Del", "p", "o", ""
-        ]
+        if (LoadedKeybindSettings == "empty") {
+            KeybindSettingVarsValue := [ ; INI use
+                "Alt", "LMB", 0, "r",
+                "t", "g", "b",
+                "y", "m", "f4",
+                "Del", "p", "o", 1
+            ]
+        } else {
+            KeybindSettingVarsValue := StrSplit(LoadedKeybindSettings, "|")
+        }
 
         ; -- Keybinds setting gui --
         for i, CurObject in KeybindSettingsVars {
@@ -892,11 +916,11 @@ SettingsGui() {
             static KeybindSettingsGuiEditbox := 30
             static EqualSignDistance := 240
 
-            if (CurKeybindValue == "") {
+            if (CurKeybindValue == 1) {
                 break
             }
 
-            if (i > 1 and CurKeybindValue != 0) {
+            if (i > 1 and CurKeybindValue != 0 and CurKeybindValue != "Hold" and CurKeybindValue != "Toggle") {
                 KeybindSettingsGuiY += 30
             }
 
@@ -904,7 +928,17 @@ SettingsGui() {
             if (CurKeybind == "FastGunSwapChoiceStatus") {
                 global FastGunSwapChoiceStatus
                 FastGunSwapChoiceStatus := GuiSetting.Add("Text", "xp-120 yp w45 h25 0x200 BackgroundFFFFFF -0x100 0x1", "Hold")
-                FastGunSwapChoiceStatus.OnEvent("Click", (*) => FastGunSwapHoldOrToggle())
+                FastGunSwapChoiceStatus.OnEvent("Click", (*) => FastGunSwapHoldOrToggle("auto"))
+
+                if (CurKeybindValue == "Hold") {
+                    FastGunSwapHoldOrToggle("hold")
+                }
+                else if (CurKeybindValue == "Toggle") {
+                    FastGunSwapHoldOrToggle("toggle")
+                }
+            }
+            else if (CurKeybind == "DummyValue") {
+                continue
             }
             ; Keybind name
             else {
@@ -932,11 +966,22 @@ SettingsGui() {
             "ShootDelayEditbox", 0, "ReloadDelayEditbox", 0
         ]
 
-        OtherSettingsEditboxValue := [
-            4, ; shoot delay
-            0, ; reload delay
-            0, 0 ;pressure jump
-        ]
+        global OtherSettingsEditboxValue
+        OtherSettingsEditboxValue := []
+
+        LoadedEditboxSettings := IniRead(SettingSavePathINI, "editbox_saves", "EditboxValues", "empty")
+        static IsAutoSaveEditbox := false
+        if (LoadedEditboxSettings == "empty") {
+            OtherSettingsEditboxValue := [ ; INI use default settings
+                4, ; shoot delay
+                0, ; reload delay
+                0, 0 ; dummy values
+                0, 0 ; pressure jump
+            ]
+        } else {
+            OtherSettingsEditboxValue := StrSplit(LoadedEditboxSettings, "|")
+            IsAutoSaveEditbox := true
+        }
 
         OtherSettingsCheckbox := [
             "CheckBoxShiftHolder", "CheckBoxLagSwitch", "CheckBoxSoundBeep",
@@ -993,17 +1038,24 @@ SettingsGui() {
             else if (CurName == "Pressure Jump") {
                 global MousePointerSpeed_Input, Sens_Input
 
+                CurEditboxValue := OtherSettingsEditboxValue[i]
+
                 ; Mouse pointer speed editbox
                 GuiSetting.SetFont("s12")
-                MousePointerSpeed_Input := GuiSetting.AddEdit("xp+170 yp w30 h20 Number", 0)
+                MousePointerSpeed_Input := GuiSetting.AddEdit("xp+170 yp w30 h20 Number", CurEditboxValue)
 
                 ; Mouse pointer speed clarification
                 GuiSetting.SetFont("s7 cWhite")
                 GuiSetting.Add("Text", "xp-22 yp+20 w73 Center", "Mouse`nPointer Speed")
-
+                
+                if (IsAutoSaveEditbox) {
+                    CurEditboxValue := OtherSettingsEditboxValue[i+1]
+                } else {
+                    CurEditboxValue := OtherSettingsEditboxValue[i]
+                }
                 ; Roblox sensitivity editbox
                 GuiSetting.SetFont("s12 cBlack")
-                Sens_Input := GuiSetting.AddEdit("xp+90 yp-20 w45 h20", 0)
+                Sens_Input := GuiSetting.AddEdit("xp+90 yp-20 w45 h20", CurEditboxValue)
 
                 ; Roblox sensitivity clarification
                 GuiSetting.SetFont("s7 cWhite")
@@ -1116,7 +1168,9 @@ SettingsGui() {
                         global CheckBoxLagSwitchBOOL := false
                         CheckBoxLagSwitch.Opt("Background000000")
                         LagSwitchStatus.Visible := false
+
                         CheckBoxLagSwitch.Redraw()
+
                         return
                     }
 
@@ -1214,6 +1268,7 @@ SettingsGui() {
 
 GunSlotsLogic(slot, type) {
     global
+    global GunSlotCheckboxNames
 
     CurGunCheckboxBool := GunSlotCheckboxBoolNames[slot]
     CurGunCheckbox := GunSlotCheckboxNames[slot]
@@ -1233,6 +1288,52 @@ GunSlotsLogic(slot, type) {
 
     %CurGunCheckbox%.Redraw()
     UpdateGunVarsForSettingGui()
+}
+
+; Save settings ; INI
+SaveSettings() {
+    ; -- Keybind saves --
+    KeybindValueSaves := ""
+
+    for CurObject in KeybindSettingsVars {
+        KeybindValueSaves .= %CurObject%.Value . "|"
+    }
+
+    KeybindValueSaves := RTrim(KeybindValueSaves, "|")
+
+    IniWrite(KeybindValueSaves, SettingSavePathINI, "keybind_saves", "KeybindValues")
+
+    ; -- Editbox saves --
+    EditboxValueSaves := ""
+    EditboxVars := [
+        "ShootDelayEditbox", "ReloadDelayEditbox",
+        0, 0, ; dummy values
+        "MousePointerSpeed_Input", "Sens_Input"
+    ]
+
+    for CurObject in EditboxVars {
+        if (CurObject == 0) {
+            EditboxValueSaves .= 0 . "|"
+            continue
+        }
+
+        EditboxValueSaves .= %CurObject%.Value . "|"
+    }
+
+    EditboxValueSaves := RTrim(EditboxValueSaves, "|")
+
+    IniWrite(EditboxValueSaves, SettingSavePathINI, "editbox_saves", "EditboxValues")
+
+    ; -- Gun checkbox saves --
+    GunCheckboxValueSaves := ""
+
+    for CurObject in GunSlotCheckboxBoolNames {
+        GunCheckboxValueSaves .= %CurObject% . "|"
+    }
+
+    GunCheckboxValueSaves := RTrim(GunCheckboxValueSaves, "|")
+
+    IniWrite(GunCheckboxValueSaves, SettingSavePathINI, "gun_checkbox_saves", "GunCheckboxValues")
 }
 
 ; Modifies keybind string, very important function
@@ -1257,6 +1358,9 @@ KeybindModifier(*) {
     KeybindStringAdd := "*$"
     KeybindStringAdd2 := "~*$"
     HelpText := ""
+
+    static UseCount := 0
+    UseCount++
 
     Keybinds := [
         MainToggleKeybind,
@@ -1386,21 +1490,37 @@ KeybindModifier(*) {
 
             Hotkey(CurAssignedHotkey, FuncName.Bind())
             Hotkey(CurAssignedHotkey, "On")
-            
+
             HotIf()
         }
     }
     UpdateGunVarsForSettingGui()
+    if (UseCount >= 2) {
+        SaveSettings()
+    }
 
     HideTrayTip()
     TrayTip("Applied Settings")
 }
 
 ; Hold or toggle fast gun swap
-FastGunSwapHoldOrToggle(*) {
+FastGunSwapHoldOrToggle(mode) {
     ; true = hold, false = toggle
-    global FastGunSwapChoiceIsHold := !FastGunSwapChoiceIsHold
+    global
 
+    if (mode == "auto") {
+        FastGunSwapChoiceIsHold := !FastGunSwapChoiceIsHold
+    }
+    else if (mode == "hold") {
+        FastGunSwapChoiceIsHold := true
+        FastGunSwapChoiceStatus.Value := "Hold"
+    }
+    else if (mode == "toggle") {
+        FastGunSwapChoiceIsHold := false
+        FastGunSwapChoiceStatus.Value := "Toggle"
+    }
+
+    GuiSetting.SetFont(FastGunSwapChoiceIsHold ? "s15" : "s4")
     FastGunSwapChoiceStatus.Value := FastGunSwapChoiceIsHold ? "Hold" : "Toggle"
     FastGunSwapChoiceStatus.Redraw()
 }
@@ -1445,17 +1565,17 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V3.9")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.0")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
 
         ; 1
-        AddText("Improved performance again", FirstLog)
+        AddText("Save setting button now saves keybind and number input settings", FirstLog)
 
         ; 2
-        ;AddText("Pressure jump info in help gui modified", OneLog)
-
+        AddText("Made fast gun swap faster", TripleLog)
+        
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
 
@@ -1511,7 +1631,7 @@ HideTrayTip() {
     SetTimer(HideTrayTip, 0) ; if i decide to use SetTimer
 }
 
-; -- Sleep below 10ms --
+; -- Sleep below 10 ms --
 SuperSleep(ms) {
     if (ms <= 0) {
         DllCall("Sleep", "UInt", 0)
@@ -1522,15 +1642,18 @@ SuperSleep(ms) {
     if (!freq)
         DllCall("QueryPerformanceFrequency", "Int64*", &freq)
 
-    DllCall("QueryPerformanceCounter", "Int64*", &start := 0)
+    
+    current := 0
+    start := 0 
+    
+    DllCall("QueryPerformanceCounter", "Int64*", &start)
     target := start + (ms * freq / 1000)
 
-    loop {
-        DllCall("QueryPerformanceCounter", "Int64*", &current := 0)
-        if (current >= target)
-            break
+    while (current < target) {
+        DllCall("QueryPerformanceCounter", "Int64*", &current)
     }
 }
+
 
 /*~^s:: {
     Sleep(200)
