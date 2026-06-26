@@ -79,7 +79,8 @@ LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves
 
         GunSlotsLogic(i, mode)
     }
-}*/
+}
+*/
 
 global GunSlotCheckboxNames := [
     "GunSlot1Checkbox", "GunSlot2Checkbox", "GunSlot3Checkbox",
