@@ -79,8 +79,7 @@ LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves
 
         GunSlotsLogic(i, mode)
     }
-}
-*/
+}*/
 
 global GunSlotCheckboxNames := [
     "GunSlot1Checkbox", "GunSlot2Checkbox", "GunSlot3Checkbox",
@@ -207,7 +206,7 @@ FastGunSwap(hk := "") {
 }
 
 OptimizedShoot(ActiveSlots, delay) {
-    for SlotNum in activeSlots {
+    for SlotNum in ActiveSlots {
         Send("{Blind}{" SlotNum "}")
         SuperSleep(delay)
         Click()
@@ -292,7 +291,7 @@ Lagswitch(hk := "") {
 
         LagSwitchTL := 0
         LagSwitchStatus.Value := 0
-        LagSwitchStatus.Opt("BackgroundD81F250")
+        LagSwitchStatus.Opt("BackgroundD81F25")
         LagSwitchStatus.Redraw()
 
         if CheckBoxSoundBeepBOOL
