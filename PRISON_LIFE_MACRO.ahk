@@ -173,7 +173,7 @@ MainToggle(hk := "") {
     global ScriptActive := !ScriptActive
 
     StatusLabel.Text := ScriptActive ? "ON" : "OFF"
-    StatusLabel.Opt(ScriptActive ? "Background00FF7F" : "BackgroundFF0000")
+    StatusLabel.Opt(ScriptActive ? "Background00FF7F" : "BackgroundD81F25")
     StatusLabel.Redraw()
 
     if CheckBoxSoundBeepBOOL
@@ -291,7 +291,7 @@ Lagswitch(hk := "") {
 
         LagSwitchTL := 0
         LagSwitchStatus.Value := 0
-        LagSwitchStatus.Opt("BackgroundFF0000")
+        LagSwitchStatus.Opt("BackgroundD81F250")
         LagSwitchStatus.Redraw()
 
         if CheckBoxSoundBeepBOOL
@@ -337,7 +337,7 @@ LagSwitchCount() {
         }
 
         LagSwitchStatus.Value := 0
-        LagSwitchStatus.Opt("BackgroundFF0000")
+        LagSwitchStatus.Opt("BackgroundD81F25")
         LagSwitchStatus.Redraw()
 
         if CheckBoxSoundBeepBOOL
@@ -394,7 +394,7 @@ FreezeClip(hk := "") {
     Send "{LShift up}"
 
     ; turn off sprint gui
-    ShiftHolderStatus.Opt("BackgroundFF0000")
+    ShiftHolderStatus.Opt("BackgroundD81F25")
     ShiftHolderStatus.Redraw()
 
     Send "{Blind}c"
@@ -512,7 +512,7 @@ FreezeCount() { ; useless function
         ShiftHolderStatus.Opt("Background00FF7F")
     } else {
         Send "{LShift up}"
-        ShiftHolderStatus.Opt("BackgroundFF0000")
+        ShiftHolderStatus.Opt("BackgroundD81F25")
     }
     ShiftHolderStatus.Redraw()
 }
@@ -521,7 +521,7 @@ FreezeCount() { ; useless function
 *$c:: {
     global ShiftHolder := false
     global IsCrouching := true
-    ShiftHolderStatus.Opt("BackgroundFF0000")
+    ShiftHolderStatus.Opt("BackgroundD81F25")
     ShiftHolderStatus.Redraw()
 
     Send "{LShift up}"
@@ -534,7 +534,7 @@ SprintToggleReset(hk := "") {
     global IsCrouching := false
     global IsChatting := false
 
-    ShiftHolderStatus.Opt("BackgroundFF0000")
+    ShiftHolderStatus.Opt("BackgroundD81F25")
     ShiftHolderStatus.Redraw()
 
     Send "{LShift up}"
@@ -547,8 +547,8 @@ SprintToggleReset(hk := "") {
     global ScriptActive := false
 
     StatusLabel.Text := "OFF"
-    StatusLabel.Opt("BackgroundFF0000")
-    ShiftHolderStatus.Opt("BackgroundFF0000")
+    StatusLabel.Opt("BackgroundD81F25")
+    ShiftHolderStatus.Opt("BackgroundD81F25")
     ShiftHolderStatus.Redraw()
     StatusLabel.Redraw()
 
@@ -563,8 +563,8 @@ SprintToggleReset(hk := "") {
     global ScriptActive := false
 
     StatusLabel.Text := "OFF"
-    StatusLabel.Opt("BackgroundFF0000")
-    ShiftHolderStatus.Opt("BackgroundFF0000")
+    StatusLabel.Opt("BackgroundD81F25")
+    ShiftHolderStatus.Opt("BackgroundD81F25")
     ShiftHolderStatus.Redraw()
     StatusLabel.Redraw()
 
@@ -646,42 +646,42 @@ MainGUI() {
 
     ; black thing
     GuiThing := Gui("-Caption +AlwaysOnTop")
-    GuiThing.BackColor := "000000" ; black hex code
+    GuiThing.BackColor := "060606" ; black hex code
 
     ; Shift Holder Gui
-    GuiThing.SetFont("s7 bold cWhite", "Arial")
-    ShiftHolderStatus := GuiThing.Add("Text", "x77 y0 w34 h15 Center 0x200 BackgroundFF0000 Hidden", "SPRINT")
+    GuiThing.SetFont("s7 bold cF0F0F0", "Arial")
+    ShiftHolderStatus := GuiThing.Add("Text", "x77 y0 w34 h15 Center 0x200 BackgroundD81F25 Hidden", "SPRINT")
 
     ; Lag switch gui
-    GuiThing.SetFont("s7 bold cWhite", "Arial")
-    LagSwitchStatus := GuiThing.Add("Text", "x61 y0 w15 h15 Center 0x200 BackgroundFF0000 Hidden", LagSwitchTL)
+    GuiThing.SetFont("s7 bold cF0F0F0", "Arial")
+    LagSwitchStatus := GuiThing.Add("Text", "x61 y0 w15 h15 Center 0x200 BackgroundD81F25 Hidden", LagSwitchTL)
 
     ; Title
-    GuiThing.SetFont("s12 bold cWhite", "Segoe UI")
+    GuiThing.SetFont("s12 bold cF0F0F0", "Segoe UI")
     GuiThing.Add("Text", "x71 y13 w145 BackgroundTrans", "Prison Life Macro")
 
     ; Credit
-    GuiThing.SetFont("s4 bold cWhite", "Consolas")
+    GuiThing.SetFont("s4 bold cF0F0F0", "Consolas")
     GuiThing.Add("Text", "xp+3 yp+21 w130 BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
 
     ; On/Off button
-    GuiThing.SetFont("s23 bold cWhite", "Arial")
-    global StatusLabel := GuiThing.Add("Text", "x0 y0 w60 h55 0x200 BackgroundFF0000 -0x100 0x1", "OFF")
+    GuiThing.SetFont("s23 bold cF0F0F0", "Arial")
+    global StatusLabel := GuiThing.Add("Text", "x0 y0 w60 h55 0x200 BackgroundD81F25 -0x100 0x1", "OFF")
 
     ; X button
-    GuiThing.SetFont("s10 cWhite", "Arial")
-    GuiThing.Add("Text", "x195 y0 w20 h15 Center 0x200 BackgroundFF0000", "X").OnEvent("Click", (*) => StopMacro())
+    GuiThing.SetFont("s10 cF0F0F0", "Arial")
+    GuiThing.Add("Text", "x195 y0 w20 h15 Center 0x200 BackgroundD81F25", "X").OnEvent("Click", (*) => StopMacro())
 
     ; Help button
-    GuiThing.SetFont("s8 bold cBlack", "Arial")
-    GuiThing.Add("Text", "x145 y0 w30 h15 Center 0x200 BackgroundFFFFFF", "HELP").OnEvent("Click", (*) => HelpGui())
+    GuiThing.SetFont("s8 bold c060606", "Arial")
+    GuiThing.Add("Text", "x145 y0 w30 h15 Center 0x200 BackgroundF0F0F0", "HELP").OnEvent("Click", (*) => HelpGui())
 
     ; Settings Button
-    GuiThing.SetFont("s10 cWhite", "Segoe UI Symbol")
-    GuiThing.Add("Text", "x175 y0 w20 h15 Center 0x200 Background00008B", Chr(0x2699)).OnEvent("Click", (*) => SettingsGui()) ; setting symbol
+    GuiThing.SetFont("s10 cF0F0F0", "Segoe UI Symbol")
+    GuiThing.Add("Text", "x175 y0 w20 h15 Center 0x200 Background1D4ED8", Chr(0x2699)).OnEvent("Click", (*) => SettingsGui()) ; setting symbol
 
     ; Guns To Swap Status
-    GuiThing.SetFont("s6 bold cWhite", "Arial")
+    GuiThing.SetFont("s6 bold cF0F0F0", "Arial")
     GuiThing.Add("Text", "x120 y39 w100 h15 Center 0x200 BackgroundTrans", "Guns to swap:")
     GunsAmountStatus := GuiThing.Add("Text", "xp+80 yp w10 h15 Center 0x200 BackgroundTrans", 0)
     global GunsAmountStatus
@@ -710,10 +710,10 @@ HelpGui() {
         global CloseMacroKeybind, IncreaseGunAmount, DecreaseGunAmount
 
         GuiHelp := Gui("-Caption +AlwaysOnTop")
-        GuiHelp.BackColor := "000000" ; black hex code
+        GuiHelp.BackColor := "060606" ; black hex code
 
         ; Title for help GUI
-        GuiHelp.SetFont("s35 bold cWhite", "Segoe UI")
+        GuiHelp.SetFont("s35 bold cF0F0F0", "Segoe UI")
         GuiHelp.Add("Text", "x150 y0 w370 Center", "Macro Help")
 
         ; -- Keybinds show --
@@ -747,12 +747,12 @@ HelpGui() {
         ]
 
         ; Keybinds title
-        GuiHelp.SetFont("s25 bold cWhite", "Tahoma") ; HELP GUI FIRST ANCHOR
+        GuiHelp.SetFont("s25 bold cF0F0F0", "Tahoma") ; HELP GUI FIRST ANCHOR
         GuiHelp.Add("Text", "x-8 y70 w330 Center", "Keybinds")
 
         for i, CurOject in ToggleHelpVars {
             global CurObject
-            GuiHelp.SetFont("s15 bold cWhite", "Consolas")
+            GuiHelp.SetFont("s15 bold cF0F0F0", "Consolas")
 
             CurKeybindVar := KeybindSettingsVars[i]
             CurHelpString := HelpStrings[i]
@@ -806,12 +806,12 @@ HelpGui() {
             )"
         ]
 
-        GuiHelp.SetFont("s25 bold cWhite", "Tahoma")
+        GuiHelp.SetFont("s25 bold cF0F0F0", "Tahoma")
         static ExtraInfoHelpGuiNameX := 335
         static ExtraInfoHelpGuiNameY := 70
         GuiHelp.Add("Text", "x" ExtraInfoHelpGuiNameX " y" ExtraInfoHelpGuiNameY " w330 Center", "Extra Info")
 
-        GuiHelp.SetFont("s7 cWhite", "Consolas")
+        GuiHelp.SetFont("s7 cF0F0F0", "Consolas")
         for i, CurObject in ExtraInfoHelpStrings {
             if (i == 1) {
                 GuiHelp.Add("Text", "xp+45 yp+45 w240 Center", CurObject)
@@ -822,12 +822,12 @@ HelpGui() {
         }
 
         ; Credit in help GUI
-        GuiHelp.SetFont("s15 cWhite", "Consolas")
+        GuiHelp.SetFont("s15 cF0F0F0", "Consolas")
         GuiHelp.Add("Text", "x55 y+25 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         ; X button for help GUI
-        GuiHelp.SetFont("s17 bold cWhite", "Arial")
-        GuiHelp.Add("Text", "x625 y0 w40 h25 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideHelp())
+        GuiHelp.SetFont("s17 bold cF0F0F0", "Arial")
+        GuiHelp.Add("Text", "x625 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideHelp())
 
         HideHelp(*) {
             GuiHelp.Hide()
@@ -876,11 +876,11 @@ SettingsGui() {
         global DecreaseGunAmount := "", DummyValue
 
         GuiSetting := Gui("-Caption +AlwaysOnTop")
-        GuiSetting.BackColor := "000000" ; black hex code
+        GuiSetting.BackColor := "060606" ; black hex code
 
         ; Title for settings GUI
-        GuiSetting.SetFont("s30 bold cWhite", "Segoe UI")
-        GuiSetting.Add("Text", "x150 y0 w700 Center", "Macro Settings")
+        GuiSetting.SetFont("s30 bold cF0F0F0", "Segoe UI")
+        GuiSetting.Add("Text", "x178 y0 w700 Center", "Macro Settings")
 
         ; -- Keybind setting gui --
         KeybindSettingsStringVars := [
@@ -911,7 +911,7 @@ SettingsGui() {
             CurKeybind := KeybindSettingsVars[i]
             CurKeybindValue := KeybindSettingVarsValue[i]
 
-            static KeybindSettingsGuiX := 50
+            static KeybindSettingsGuiX := 40
             static KeybindSettingsGuiY := 70
             static KeybindSettingsGuiEditbox := 30
             static EqualSignDistance := 240
@@ -927,7 +927,8 @@ SettingsGui() {
             ; for fast gun swap choice
             if (CurKeybind == "FastGunSwapChoiceStatus") {
                 global FastGunSwapChoiceStatus
-                FastGunSwapChoiceStatus := GuiSetting.Add("Text", "xp-120 yp w45 h25 0x200 BackgroundFFFFFF -0x100 0x1", "Hold")
+                GuiSetting.SetFont("s10 bold c060606", "Consolas")
+                FastGunSwapChoiceStatus := GuiSetting.Add("Text", "xp-120 yp w45 h25 0x200 BackgroundF0F0F0 -0x100 0x1", "Hold")
                 FastGunSwapChoiceStatus.OnEvent("Click", (*) => FastGunSwapHoldOrToggle("auto"))
 
                 if (CurKeybindValue == "Hold") {
@@ -943,15 +944,15 @@ SettingsGui() {
             ; Keybind name
             else {
                 ; Keybind names
-                GuiSetting.SetFont("s15 bold cWhite", "Consolas")
+                GuiSetting.SetFont("s15 bold cF0F0F0", "Consolas")
                 GuiSetting.Add("Text", "x" KeybindSettingsGuiX " y" KeybindSettingsGuiY " w400 BackgroundTrans", CurName)
 
                 ; Equal sign
                 GuiSetting.Add("Text", "xp+" EqualSignDistance " yp w10", "=")
 
                 ; Editboxes
-                GuiSetting.SetFont("s15 bold cBlack", "Consolas")
-                %CurKeybind% := GuiSetting.AddEdit("xp+" KeybindSettingsGuiEditbox " yp w45 h25 0x200", CurKeybindValue)
+                GuiSetting.SetFont("s15 bold c060606", "Consolas")
+                %CurKeybind% := GuiSetting.AddEdit("xp+" KeybindSettingsGuiEditbox " yp w45 h25 0x200 BackgroundF0F0F0", CurKeybindValue)
             }
         }
 
@@ -991,7 +992,7 @@ SettingsGui() {
         for i, CurObject in OtherSettingsNames {
             CurName := CurObject
 
-            static OtherSettingGuiNameX := 400
+            static OtherSettingGuiNameX := 390
             static OtherSettingGuiNameY := 70
             static OtherSettingsEditboxX := 250
             static CheckBoxX := OtherSettingsEditboxX - 1
@@ -1004,7 +1005,7 @@ SettingsGui() {
             }
             ; milisecond disclamer
             else if (CurName == "milisecond1" or CurName == "milisecond2") {
-                GuiSetting.SetFont("s8 bold cWhite", "Consolas")
+                GuiSetting.SetFont("s8 bold cF0F0F0", "Consolas")
                 if (CurName == "milisecond1") {
                     MilisecondDistanceDisclamer := 125
                 } else if (CurName == "milisecond2") {
@@ -1020,9 +1021,9 @@ SettingsGui() {
             }
 
             ; Other settings name
-            GuiSetting.SetFont("s15 bold cWhite", "Consolas")
+            GuiSetting.SetFont("s15 bold cF0F0F0", "Consolas")
             GuiSetting.Add("Text", "x" OtherSettingGuiNameX " y" OtherSettingGuiNameY " w330", CurName)
-            GuiSetting.SetFont("cBlack")
+            GuiSetting.SetFont("c060606")
 
             ; for editbox
             if (i <= OtherSettingsEditbox.Length) {
@@ -1032,7 +1033,7 @@ SettingsGui() {
                 CurEditboxValue := OtherSettingsEditboxValue[i]
 
                 ; editbox
-                %CurEditbox% := GuiSetting.AddEdit("xp+" OtherSettingsEditboxX " yp+4 w25 h25 0x200 +Number", CurEditboxValue)
+                %CurEditbox% := GuiSetting.AddEdit("xp+" OtherSettingsEditboxX " yp+4 w25 h25 0x200 +Number BackgroundF0F0F0", CurEditboxValue)
             }
             ; for pressure jump
             else if (CurName == "Pressure Jump") {
@@ -1042,10 +1043,10 @@ SettingsGui() {
 
                 ; Mouse pointer speed editbox
                 GuiSetting.SetFont("s12")
-                MousePointerSpeed_Input := GuiSetting.AddEdit("xp+170 yp w30 h20 Number", CurEditboxValue)
+                MousePointerSpeed_Input := GuiSetting.AddEdit("xp+170 yp w30 h20 Number BackgroundF0F0F0", CurEditboxValue)
 
                 ; Mouse pointer speed clarification
-                GuiSetting.SetFont("s7 cWhite")
+                GuiSetting.SetFont("s7 cF0F0F0")
                 GuiSetting.Add("Text", "xp-22 yp+20 w73 Center", "Mouse`nPointer Speed")
                 
                 if (IsAutoSaveEditbox) {
@@ -1054,23 +1055,23 @@ SettingsGui() {
                     CurEditboxValue := OtherSettingsEditboxValue[i]
                 }
                 ; Roblox sensitivity editbox
-                GuiSetting.SetFont("s12 cBlack")
-                Sens_Input := GuiSetting.AddEdit("xp+90 yp-20 w45 h20", CurEditboxValue)
+                GuiSetting.SetFont("s12 c060606")
+                Sens_Input := GuiSetting.AddEdit("xp+90 yp-20 w45 h20 BackgroundF0F0F0", CurEditboxValue)
 
                 ; Roblox sensitivity clarification
-                GuiSetting.SetFont("s7 cWhite")
+                GuiSetting.SetFont("s7 cF0F0F0")
                 GuiSetting.Add("Text", "xp-9 yp+20 w50 Center", "Roblox sensitivity")
             }
             ; for checkbox
             else {
-                GuiSetting.SetFont("s12 cBlack")
+                GuiSetting.SetFont("s12 c060606")
 
                 CurCheckboxCount := i - 5
                 CurCheckbox := OtherSettingsCheckbox[CurCheckboxCount]
 
                 ; checkbox
-                GuiSetting.Add("Text", "xp+" CheckBoxX " yp+1 w28 h25 BackgroundFFFFFF") ; white square
-                %CurCheckbox% := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+                GuiSetting.Add("Text", "xp+" CheckBoxX " yp+1 w28 h25 BackgroundF0F0F0") ; white square
+                %CurCheckbox% := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background060606")
                 BindCheckboxEvent(%CurCheckbox%, CurCheckboxCount)
             }
         }
@@ -1101,21 +1102,21 @@ SettingsGui() {
             CurGunStringName := "Slot " . i
             CurGunCheckbox := GunSlotCheckboxNames[i]
 
-            static GunAmountSettingsGuiNameX := 725
+            static GunAmountSettingsGuiNameX := 705
             static GunAmountSettingsGuiNameY := 70
-            static GunCheckboxX := 150
+            static GunCheckboxX := 180
 
             if (i > 1) {
                 GunAmountSettingsGuiNameY += 30
             }
 
             ; Gun number
-            GuiSetting.SetFont("s15 bold cWhite", "Consolas")
+            GuiSetting.SetFont("s15 bold cF0F0F0", "Consolas")
             GuiSetting.Add("Text", "x" GunAmountSettingsGuiNameX " y" GunAmountSettingsGuiNameY " w330 BackgroundTrans", CurGunStringName)
 
             ; Checkbox
-            GuiSetting.Add("Text", "xp+" GunCheckBoxX " yp+1 w28 h25 BackgroundFFFFFF") ; white square
-            %CurGunCheckbox% := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background000000")
+            GuiSetting.Add("Text", "xp+" GunCheckBoxX " yp+1 w28 h25 BackgroundF0F0F0") ; white square
+            %CurGunCheckbox% := GuiSetting.Add("Text", "xp+2 yp+2 w23 h20 Background060606")
             BindGunCheckboxEvent(%CurGunCheckbox%, i)
         }
 
@@ -1134,19 +1135,19 @@ SettingsGui() {
         }
 
         ; X button in settings GUI
-        GuiSetting.SetFont("s17 bold cWhite", "Arial")
-        GuiSetting.Add("Text", "x924 y0 w40 h25 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideSetting())
+        GuiSetting.SetFont("s17 bold cF0F0F0", "Arial")
+        GuiSetting.Add("Text", "x915 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideSetting())
 
         ; Apply Settings
-        GuiSetting.SetFont("s13 bold cWhite", "Arial")
-        GuiSetting.Add("Text", "x460 y350 w120 h40 Center 0x200 BackgroundFF0000", "Apply settings").OnEvent("Click", (*) => KeybindModifier())
+        GuiSetting.SetFont("s13 bold cF0F0F0", "Arial")
+        GuiSetting.Add("Text", "x475 y350 w120 h40 Center 0x200 BackgroundD81F25", "Apply settings").OnEvent("Click", (*) => KeybindModifier())
 
         CheckboxFunction(num) {
             switch (num) {
                 case 1:
                     ; Sprint toggle
                     global CheckBoxShiftHolderBOOL := !CheckBoxShiftHolderBOOL
-                    CheckBoxShiftHolder.Opt(CheckBoxShiftHolderBOOL ? "Background00FF00" : "Background000000")
+                    CheckBoxShiftHolder.Opt(CheckBoxShiftHolderBOOL ? "Background00FF00" : "Background060606")
                     ShiftHolderStatus.Visible := (CheckBoxShiftHolderBOOL ? true : false)
                     CheckBoxShiftHolder.Redraw()
 
@@ -1166,7 +1167,7 @@ SettingsGui() {
                         }
 
                         global CheckBoxLagSwitchBOOL := false
-                        CheckBoxLagSwitch.Opt("Background000000")
+                        CheckBoxLagSwitch.Opt("Background060606")
                         LagSwitchStatus.Visible := false
 
                         CheckBoxLagSwitch.Redraw()
@@ -1233,20 +1234,20 @@ SettingsGui() {
                     }
 
                     global CheckBoxLagSwitchBOOL := !CheckBoxLagSwitchBOOL
-                    CheckBoxLagSwitch.Opt(CheckBoxLagSwitchBOOL ? "Background00FF00" : "Background000000")
+                    CheckBoxLagSwitch.Opt(CheckBoxLagSwitchBOOL ? "Background00FF00" : "Background060606")
                     LagSwitchStatus.Visible := (CheckBoxLagSwitchBOOL ? true : false)
                     CheckBoxLagSwitch.Redraw()
                 case 3:
                     ; Sound beep
                     global CheckBoxSoundBeepBOOL := !CheckBoxSoundBeepBOOL
-                    CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background000000")
+                    CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background060606")
                     CheckBoxSoundBeep.Redraw()
             }
         }
 
         ; Credit in settings GUI
-        GuiSetting.SetFont("s15 cWhite", "Consolas")
-        GuiSetting.Add("Text", "x250 y450 w490 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.SetFont("s15 cF0F0F0", "Consolas")
+        GuiSetting.Add("Text", "x290 y450 w490 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         SettingsGuiShow := true
         KeybindModifier()
@@ -1256,7 +1257,7 @@ SettingsGui() {
 
     ; Shows/closes Settings GUI
     if (IsSettingsVisible) {
-        SettingsGuiShowW := 1205
+        SettingsGuiShowW := 1195
         SettingsGuiShowH := 600
 
         GuiSetting.Show("w" SettingsGuiShowW " h" SettingsGuiShowH "")
@@ -1275,7 +1276,7 @@ GunSlotsLogic(slot, type) {
 
     if (type == "auto") {
         %CurGunCheckboxBool% := !%CurGunCheckboxBool%
-        %CurGunCheckbox%.Opt(%CurGunCheckboxBool% ? "Background00FF00" : "Background000000")
+        %CurGunCheckbox%.Opt(%CurGunCheckboxBool% ? "Background00FF00" : "Background060606")
     }
     else if (type == "true") {
         %CurGunCheckboxBool% := true
@@ -1283,7 +1284,7 @@ GunSlotsLogic(slot, type) {
     }
     else if (type == "false") {
         %CurGunCheckboxBool% := false
-        %CurGunCheckbox%.Opt("Background000000")
+        %CurGunCheckbox%.Opt("Background060606")
     }
 
     %CurGunCheckbox%.Redraw()
@@ -1497,10 +1498,10 @@ KeybindModifier(*) {
     UpdateGunVarsForSettingGui()
     if (UseCount >= 2) {
         SaveSettings()
-    }
 
-    HideTrayTip()
-    TrayTip("Applied Settings")
+        HideTrayTip()
+        TrayTip("Applied Settings")
+    }
 }
 
 ; Hold or toggle fast gun swap
@@ -1520,7 +1521,6 @@ FastGunSwapHoldOrToggle(mode) {
         FastGunSwapChoiceStatus.Value := "Toggle"
     }
 
-    GuiSetting.SetFont(FastGunSwapChoiceIsHold ? "s15" : "s4")
     FastGunSwapChoiceStatus.Value := FastGunSwapChoiceIsHold ? "Hold" : "Toggle"
     FastGunSwapChoiceStatus.Redraw()
 }
@@ -1557,24 +1557,24 @@ ChangeLogGui() {
     if (!ChangeLogGuiShow) {
         global GuiChangeLog
         GuiChangeLog := Gui("-Caption +AlwaysOnTop")
-        GuiChangeLog.BackColor := "000000" ; Black hex code
+        GuiChangeLog.BackColor := "060606" ; Black hex code
         static FirstLog := 50
         static OneLog := 45
         static DoubleLog := 75
         static TripleLog := 105
 
         ; Title for Change Log GUI
-        GuiChangeLog.SetFont("s25 bold cWhite", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.0")
+        GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.1")
 
         ; -- Change Logs --
-        GuiChangeLog.SetFont("s30 bold cWhite", "Segoe UI")
+        GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Save setting button now saves keybind and number input settings", FirstLog)
+        AddText("Slightly improved colors for every gui", FirstLog)
 
         ; 2
-        AddText("Made fast gun swap faster", TripleLog)
+        AddText("Centered settings gui properly", DoubleLog)
         
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
@@ -1583,20 +1583,20 @@ ChangeLogGui() {
         ;AddText("Improved macro closing", TripleLog)
 
         ; Credit in Change Log GUI
-        GuiChangeLog.SetFont("s10 cWhite", "Consolas")
+        GuiChangeLog.SetFont("s10 cF0F0F0", "Consolas")
         GuiChangeLog.Add("Text", "x0 y380 w360 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         AddText(ChangeLogTextInput, YposInput) {
-            GuiChangeLog.SetFont("s18 bold cWhite", "Segoe UI")
+            GuiChangeLog.SetFont("s18 bold cF0F0F0", "Segoe UI")
             GuiChangeLog.Add("Text", "x50 yp+" YposInput " w265 Center", ChangeLogTextInput)
 
-            GuiChangeLog.SetFont("s20 bold cWhite", "Segoe UI")
+            GuiChangeLog.SetFont("s20 bold cF0F0F0", "Segoe UI")
             GuiChangeLog.Add("Text", "x10 yp w5", "•")
         }
 
         ; X button in Change Log GUI
-        GuiChangeLog.SetFont("s13 bold cWhite", "Arial")
-        GuiChangeLog.Add("Text", "x329 y0 w30 h20 Center BackgroundFF0000", "X").OnEvent("Click", (*) => HideChangeLog())
+        GuiChangeLog.SetFont("s13 bold cF0F0F0", "Arial")
+        GuiChangeLog.Add("Text", "x329 y0 w30 h20 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideChangeLog())
 
         ; function for hiding setting GUI
         HideChangeLog(*) {
