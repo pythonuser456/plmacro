@@ -67,7 +67,7 @@ LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves
 
 /*if (LoadedOtherCheckboxSettings != "empty") {
     OtherCheckboxSettingVarsValues := StrSplit(LoadedOtherCheckboxSettings, "|")
-    
+
     for i, CurObject in GunSlotCheckboxBoolNames {
         CurBoolValue := OtherCheckboxSettingVarsValues[i]
 
@@ -184,14 +184,8 @@ MainToggle(hk := "") {
 ; -- Fast Gun Swap --
 FastGunSwap(hk := "") {
     global IsFastGunSwapHolding
-    
+
     delay := Number(ShootDelayEditbox.Value)
-    
-    ActiveSlots := []
-    for index, CurObject in GunSlotCheckboxBoolNames {
-        if (%CurObject%)
-            ActiveSlots.Push(index)
-    }
 
     if (FastGunSwapChoiceIsHold) {
         while GetKeyState(SecondaryFastGunSwapKeybindString, "P") {
@@ -200,15 +194,16 @@ FastGunSwap(hk := "") {
     }
     else {
         IsFastGunSwapHolding := !IsFastGunSwapHolding
+
         while (IsFastGunSwapHolding) {
             OptimizedShoot(ActiveSlots, delay)
         }
     }
 }
 
-OptimizedShoot(ActiveSlots, delay) {
-    for SlotNum in ActiveSlots {
-        Send("{Blind}{" SlotNum "}")
+OptimizedShoot(CurArray, delay) {
+    for Key in CurArray {
+        Send("{Blind}{" Key "}")
         SuperSleep(delay)
         Click()
         SuperSleep(delay)
@@ -218,7 +213,7 @@ OptimizedShoot(ActiveSlots, delay) {
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
     global ReloadDelay
-    
+
     delay := Number(ReloadDelayEditbox.Value)
     for i, SlotCheck in GunSlotCheckboxBoolNames {
         GunSlotVar := SlotCheck
@@ -267,6 +262,8 @@ IncreaseOrDecreaseShortcutLogic(input) {
 
     GunsAmountStatus.Value := GunAmountVar
     GunsAmountStatus.Redraw()
+
+    UpdateRealGunStuff()
 
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
@@ -1049,9 +1046,9 @@ SettingsGui() {
                 ; Mouse pointer speed clarification
                 GuiSetting.SetFont("s7 cF0F0F0")
                 GuiSetting.Add("Text", "xp-22 yp+20 w73 Center", "Mouse`nPointer Speed")
-                
+
                 if (IsAutoSaveEditbox) {
-                    CurEditboxValue := OtherSettingsEditboxValue[i+1]
+                    CurEditboxValue := OtherSettingsEditboxValue[i + 1]
                 } else {
                     CurEditboxValue := OtherSettingsEditboxValue[i]
                 }
@@ -1103,9 +1100,9 @@ SettingsGui() {
             CurGunStringName := "Slot " . i
             CurGunCheckbox := GunSlotCheckboxNames[i]
 
-            static GunAmountSettingsGuiNameX := 705
+            static GunAmountSettingsGuiNameX := 710
             static GunAmountSettingsGuiNameY := 70
-            static GunCheckboxX := 180
+            static GunCheckboxX := 200
 
             if (i > 1) {
                 GunAmountSettingsGuiNameY += 30
@@ -1137,7 +1134,7 @@ SettingsGui() {
 
         ; X button in settings GUI
         GuiSetting.SetFont("s17 bold cF0F0F0", "Arial")
-        GuiSetting.Add("Text", "x915 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideSetting())
+        GuiSetting.Add("Text", "x951 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideSetting())
 
         ; Apply Settings
         GuiSetting.SetFont("s13 bold cF0F0F0", "Arial")
@@ -1258,7 +1255,7 @@ SettingsGui() {
 
     ; Shows/closes Settings GUI
     if (IsSettingsVisible) {
-        SettingsGuiShowW := 1195
+        SettingsGuiShowW := 1240
         SettingsGuiShowH := 600
 
         GuiSetting.Show("w" SettingsGuiShowW " h" SettingsGuiShowH "")
@@ -1336,6 +1333,23 @@ SaveSettings() {
     GunCheckboxValueSaves := RTrim(GunCheckboxValueSaves, "|")
 
     IniWrite(GunCheckboxValueSaves, SettingSavePathINI, "gun_checkbox_saves", "GunCheckboxValues")
+}
+
+; Update real gun stuff
+UpdateRealGunStuff() {
+    global
+    global ActiveSlots
+
+    ActiveSlots := []
+    for i, CurObject in GunSlotCheckboxBoolNames {
+        if (%CurObject%) {
+            if (i == 10) {
+                ActiveSlots.Push(0)
+            } else {
+                ActiveSlots.Push(i)
+            }
+        }
+    }
 }
 
 ; Modifies keybind string, very important function
@@ -1543,9 +1557,10 @@ UpdateGunVarsForSettingGui() {
     GunAmountVar := 0
     for i, CurObject in GunSlotCheckboxBoolNames {
         if (%CurObject%) {
-            GunAmountVar := i
+            GunAmountVar++
         }
     }
+    UpdateRealGunStuff()
 
     GunsAmountStatus.Value := GunAmountVar
     GunsAmountStatus.Redraw()
@@ -1566,17 +1581,17 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.2")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.3")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Fixed auto config for clumsy window bug", FirstLog)
+        AddText("Made fast gun swap 0.60 miliseconds faster", FirstLog)
 
         ; 2
-        AddText("Fixed messed up colors for lag switch count", DoubleLog)
-        
+        ;AddText("Fixed messed up colors for lag switch count", DoubleLog)
+
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
 
@@ -1643,10 +1658,10 @@ SuperSleep(ms) {
     if (!freq)
         DllCall("QueryPerformanceFrequency", "Int64*", &freq)
 
-    
+
     current := 0
-    start := 0 
-    
+    start := 0
+
     DllCall("QueryPerformanceCounter", "Int64*", &start)
     target := start + (ms * freq / 1000)
 
