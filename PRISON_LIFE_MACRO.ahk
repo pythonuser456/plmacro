@@ -79,7 +79,8 @@ LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves
 
         GunSlotsLogic(i, mode)
     }
-}*/
+}
+*/
 
 global GunSlotCheckboxNames := [
     "GunSlot1Checkbox", "GunSlot2Checkbox", "GunSlot3Checkbox",
@@ -1218,7 +1219,7 @@ SettingsGui() {
                         ; turns off lag switch
                         WinWait("ahk_exe clumsy.exe")
                         BlockInput true
-                        Sleep(50)
+                        Sleep(100)
                         Try {
                             ControlClick("Button2", "ahk_exe clumsy.exe")
                             WinMinimize("ahk_exe clumsy.exe")
@@ -1565,16 +1566,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.1")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.2")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Slightly improved colors for every gui", FirstLog)
+        AddText("Fixed auto config for clumsy window bug", FirstLog)
 
         ; 2
-        AddText("Centered settings gui properly", DoubleLog)
+        AddText("Fixed messed up colors for lag switch count", DoubleLog)
         
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
