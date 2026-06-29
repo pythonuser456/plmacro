@@ -1555,14 +1555,17 @@ UpdateGunVarsForSettingGui() {
     }
 
     GunAmountVar := 0
+    CountVar := 0
+
     for i, CurObject in GunSlotCheckboxBoolNames {
         if (%CurObject%) {
-            GunAmountVar++
+            GunAmountVar := i
+            CountVar++
         }
     }
     UpdateRealGunStuff()
 
-    GunsAmountStatus.Value := GunAmountVar
+    GunsAmountStatus.Value := CountVar
     GunsAmountStatus.Redraw()
 }
 
@@ -1578,19 +1581,20 @@ ChangeLogGui() {
         static OneLog := 45
         static DoubleLog := 75
         static TripleLog := 105
+        static QuadrupleLog := 150
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.3")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.4")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Made fast gun swap 0.60 miliseconds faster", FirstLog)
+        AddText("Made increase and decrease gun amount keybinds work properly and better", FirstLog)
 
         ; 2
-        ;AddText("Fixed messed up colors for lag switch count", DoubleLog)
+        ;AddText("Maybe last", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
