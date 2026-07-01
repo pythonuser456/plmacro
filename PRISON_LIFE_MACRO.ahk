@@ -212,21 +212,15 @@ OptimizedShoot(CurArray, delay) {
 
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
-    global ReloadDelay
+    global ReloadDelayEditbox
 
     delay := Number(ReloadDelayEditbox.Value)
-    for i, SlotCheck in GunSlotCheckboxBoolNames {
-        GunSlotVar := SlotCheck
 
-        if (%GunSlotVar%) {
-            Send "{Blind}{" i "}"
-            SuperSleep(delay)
-            Send "{Blind}r"
-        }
+    for Key in ActiveSlots {
+        Send "{Blind}{" Key "}"
+        SuperSleep(delay)
+        Send "{Blind}r"
     }
-
-    if CheckBoxSoundBeepBOOL
-        SoundBeep(550, 20)
 }
 
 ; -- Decrease Gun Amount Shortcut --
@@ -772,7 +766,7 @@ HelpGui() {
                 To use the fast weapon swap macro,
                  you need to select your inventory slots where your guns are
                  in the settings or use the O/P keybinds.
-                 The recommended shoot delay for 60+ fps is 1 milisecond.
+                 The recommended shoot delay for 60+ fps is 3 milisecond.
                  And the recommended shoot delay for 30 fps is 4 milisecond (so your pc doesn't get fried)
             )",
             " ; lag switch info
@@ -1585,16 +1579,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.4")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.5")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Made increase and decrease gun amount keybinds work properly and better", FirstLog)
+        AddText("Fast gun swap info on help gui modified slightly", FirstLog)
 
         ; 2
-        ;AddText("Maybe last", DoubleLog)
+        AddText("Shuffle reload can reload to the 10th slot again", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
