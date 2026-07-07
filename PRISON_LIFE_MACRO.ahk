@@ -3,8 +3,15 @@
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
+#MaxThreadsPerHotkey 2
+try {
+    #Include <OCR>
+}
+
 KeyHistory 0
 ListLines 0
+CoordMode "Pixel", "Screen"
+CoordMode "Mouse", "Screen"
 
 ProcessSetPriority "High"
 SendMode "Input"
@@ -14,7 +21,6 @@ SetMouseDelay -1
 SetWinDelay -1
 SetControlDelay -1
 
-#MaxThreadsPerHotkey 2
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
 
 ; -- Settings load --
@@ -22,6 +28,7 @@ SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
 
 ; -- Variables --
 ScriptActive := false
+running := false
 ShiftHolder := false
 ShowUi := false
 
@@ -99,6 +106,7 @@ KeybindSettingsVars := [
 
 IsHelpVisible := false
 IsSettingsVisible := true
+IsGunAmmoShowVisible := false
 IsChangeLogVisible := false
 IsCrouching := false
 IsChatting := false
@@ -154,12 +162,18 @@ IncreaseGunAmount := ""
 DecreaseGunAmount := ""
 
 ; -- Main GUI Call --
-if not A_IsAdmin {
+if not (A_IsAdmin or RegExMatch(DllCall("GetCommandLine", "str"), " /restart(?!\S)")) {
     try {
-        Run('*RunAs "' A_ScriptFullPath '"')
-        ExitApp() ; Closes non admin version
-    } catch as err {
-        MsgBox("Admin privileges denied. Some features may not work properly or work at all.")
+        if A_IsCompiled {
+            Run '*RunAs "' A_ScriptFullPath '" /restart'
+        }
+        else {
+            Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+        }
+
+        StopMacro()
+    } catch {
+        MsgBox("Warning: Some features may not work properly or not work at all. If you want the best experience close the macro, open it back, and run as an administrator")
     }
 }
 
@@ -201,18 +215,24 @@ FastGunSwap(hk := "") {
     }
 }
 
-OptimizedShoot(CurArray, delay) {
+OptimizedShoot(CurArray, CurDelay) {
     for Key in CurArray {
         Send("{Blind}{" Key "}")
-        SuperSleep(delay)
+        SuperSleep(CurDelay)
         Click()
-        SuperSleep(delay)
+        SuperSleep(CurDelay)
     }
 }
 
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
-    global ReloadDelayEditbox
+    global ReloadDelayEditbox, running
+
+    if (running) {
+        return
+    }
+
+    running := true
 
     delay := Number(ReloadDelayEditbox.Value)
 
@@ -221,6 +241,8 @@ ShuffleReload(hk := "") {
         SuperSleep(delay)
         Send "{Blind}r"
     }
+
+    running := false
 }
 
 ; -- Decrease Gun Amount Shortcut --
@@ -265,47 +287,48 @@ IncreaseOrDecreaseShortcutLogic(input) {
 
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
-    if (!CheckBoxLagSwitchBOOL or !WinExist("ahk_exe clumsy.exe")) {
+    global PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
+
+    if (!CheckBoxLagSwitchBOOL or !PID) {
         return
     }
 
-    global IsLagging := !IsLagging
-    global LagSwitchTL
+    IsLagging := !IsLagging
+    CurrentPath := GetProcessPath(PID)
+    global LagSwitchTL, IsLagging, currentPath
 
-    ; IF TURNING OFF
-    if (!IsLagging) {
-        SetTimer(LagSwitchCount, 0)
-        Try {
-            ControlClick("Button2", "ahk_exe clumsy.exe")
-        } catch {
-            ControlClick("Button2", "ahk_exe clumsy.exe")
-        }
+    switch IsLagging {
+        case true:
+            LagSwitchTurn(true)
 
-        LagSwitchTL := 0
-        LagSwitchStatus.Value := 0
-        LagSwitchStatus.Opt("BackgroundD81F25")
-        LagSwitchStatus.Redraw()
+            LagSwitchTL := 19
+            LagSwitchStatus.Value := LagSwitchTL
+            LagSwitchStatus.Opt("Background00FF7F")
+            LagSwitchStatus.Redraw()
+            SetTimer(LagSwitchCount, 1000)
+        case false:
+            SetTimer(LagSwitchCount, 0)
 
-        if CheckBoxSoundBeepBOOL
-            SoundBeep(400, 20)
-        return
+            LagSwitchTurn(false)
+
+            LagSwitchTL := 0
+            LagSwitchStatus.Value := 0
+            LagSwitchStatus.Opt("BackgroundD81F25")
+            LagSwitchStatus.Redraw()
     }
 
-    ; IF TURNING ON
-    Try {
-        ControlClick("Button2", "ahk_exe clumsy.exe")
-    } catch {
-        ControlClick("Button2", "ahk_exe clumsy.exe")
+    if (CheckBoxSoundBeepBOOL) {
+        SoundBeep(IsLagging ? 550 : 400, 20)
     }
+}
 
-    LagSwitchTL := 19
-    LagSwitchStatus.Value := LagSwitchTL
-    LagSwitchStatus.Opt("Background00FF7F")
-    LagSwitchStatus.Redraw()
-    SetTimer(LagSwitchCount, 1000)
-
-    if CheckBoxSoundBeepBOOL
-        SoundBeep(550, 20)
+LagSwitchTurn(bool) { ; suspend / resume roblox
+    switch bool {
+        case true:
+            RunWait('netsh advfirewall firewall add rule name="RobloxLagSwitch" dir=out action=block program="' . CurrentPath . '" enable=yes', , "Hide")
+        case false:
+            RunWait('netsh advfirewall firewall delete rule name="RobloxLagSwitch"', , "Hide")
+    }
 }
 
 LagSwitchCount() {
@@ -322,11 +345,7 @@ LagSwitchCount() {
     if (LagSwitchTL <= 0) {
         IsLagging := false
         SetTimer(LagSwitchCount, 0) ; Turn off timer
-        Try {
-            ControlClick("Button2", "ahk_exe clumsy.exe")
-        } catch {
-            ControlClick("Button2", "ahk_exe clumsy.exe")
-        }
+        LagSwitchTurn(false)
 
         LagSwitchStatus.Value := 0
         LagSwitchStatus.Opt("BackgroundD81F25")
@@ -337,9 +356,24 @@ LagSwitchCount() {
     }
 }
 
-#HotIf ScriptActive
+GetProcessPath(processName) { ; lowkey dont understand what this does but it works
+    for proc in ComObjGet("winmgmts:").ExecQuery("Select ExecutablePath from Win32_Process Where Name = '" . processName . "'") {
+        if proc.ExecutablePath
+            return proc.ExecutablePath
+    }
+    throw Error("Process not found")
+}
+
 ; -- Pressure Jump --
 PressureJump(hk := "") {
+    global running
+
+    if (running) {
+        return
+    }
+
+    running := true
+
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 
@@ -375,10 +409,19 @@ PressureJump(hk := "") {
     }
 
     global IsCrouching := false
+    running := false
 }
 
 ; -- Freeze Clip --
 FreezeClip(hk := "") {
+    global running
+
+    if (running) {
+        return
+    }
+
+    running := true
+
     ; turn off vars for sprint holder
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
@@ -398,10 +441,20 @@ FreezeClip(hk := "") {
     Sleep(450)
 
     freeze(2) ; stops freezing roblox
+
+    running := false
 }
 
 ; -- Freeze Roblox --
 FreezeRoblox(hk := "") {
+    global running
+
+    if (running) {
+        return
+    }
+
+    running := true
+
     global IsFrozen := !IsFrozen
 
     ; Freeze/Unfreeze
@@ -410,6 +463,8 @@ FreezeRoblox(hk := "") {
     } else {
         freeze(2)
     }
+
+    running := false
 }
 
 /*; -- Floofy clip -- doesnt work
@@ -487,7 +542,6 @@ FreezeCount() { ; useless function
     }
 }
 
-#HotIf
 ; -- Shift Holder --
 ~$*LShift:: {
     if (!CheckBoxShiftHolderBOOL or IsChatting or IsCrouching) {
@@ -1122,8 +1176,6 @@ SettingsGui() {
             global IsSettingsVisible := false
 
             UpdateGunVarsForSettingGui()
-
-            SetTimer(KeybindModifier, 0)
         }
 
         ; X button in settings GUI
@@ -1148,83 +1200,6 @@ SettingsGui() {
                         SprintToggleReset()
                     }
                 case 2:
-                    ZipPath := A_ScriptDir "\clumsy-0.3-win64-a.zip"
-                    TargetFolder := A_ScriptDir "\clumsy-0.3-win64-a"
-                    ClumsyPath := TargetFolder "\clumsy.exe"
-                    FilterConfig := "outbound and udp"
-
-                    if (CheckBoxLagSwitchBOOL) {
-                        if WinExist("ahk_exe clumsy.exe") {
-                            ProcessClose("clumsy.exe")
-                        }
-
-                        global CheckBoxLagSwitchBOOL := false
-                        CheckBoxLagSwitch.Opt("Background060606")
-                        LagSwitchStatus.Visible := false
-
-                        CheckBoxLagSwitch.Redraw()
-
-                        return
-                    }
-
-                    ; if clumsy isnt installed
-                    if (!FileExist(TargetFolder) && !FileExist(ZipPath)) {
-                        HideTrayTip() ; removes tray trip
-                        TrayTip("Downloading Clumsy (required file for lag switching)", "Macro Installer")
-
-                        try {
-                            Download("https://github.com/jagt/clumsy/releases/download/0.3/clumsy-0.3-win64-a.zip", ZipPath)
-                            MsgBox("Automated installation success")
-                        } catch Error as err {
-                            MsgBox("Automated installation failed. Install clumsy-0.3-win64-a.zip bit from https://jagt.github.io/clumsy/download `n`n Error: " err.Message)
-                            return
-                        }
-                    }
-
-                    ; auto extract
-                    if !FileExist(TargetFolder) {
-                        HideTrayTip() ; Removes tray trip
-                        TrayTip("Extracting Clumsy files", "Macro Installer")
-
-                        try {
-                            DirCreate(TargetFolder) ; creates folder
-                            ShellObj := ComObject("Shell.Application")
-                            ZipFolder := ShellObj.NameSpace(ZipPath)
-                            DestFolder := ShellObj.NameSpace(TargetFolder)
-
-                            if (ZipFolder && DestFolder) {
-                                DestFolder.CopyHere(ZipFolder.Items, 4 | 16)
-                                Sleep(800)
-                            }
-                        } catch Error as err {
-                            MsgBox("Extraction failed. Extract the zip file manually `n`nError:" err.Message)
-                            return
-                        }
-                    }
-                    if (!WinExist("ahk_exe clumsy.exe") && FileExist(ClumsyPath)) {
-                        Try ProcessClose("clumsy.exe")
-                        Sleep(500)
-
-                        Run('*RunAs "' ClumsyPath '" --filter "' FilterConfig '" --lag on --lag-time 5000 --drop on --drop-chance 100 --throttle on --throttle-chance 100 --throttle-frame 1000')
-
-                        ; turns off lag switch
-                        WinWait("ahk_exe clumsy.exe")
-                        BlockInput true
-                        Sleep(100)
-                        Try {
-                            ControlClick("Button2", "ahk_exe clumsy.exe")
-                            WinMinimize("ahk_exe clumsy.exe")
-                        } catch {
-                            ControlClick("Button2", "ahk_exe clumsy.exe")
-                            WinMinimize("ahk_exe clumsy.exe")
-                        }
-                        BlockInput false
-                    } else {
-                        if WinExist("ahk_exe clumsy.exe") {
-                            WinClose("ahk_exe clumsy.exe")
-                        }
-                    }
-
                     global CheckBoxLagSwitchBOOL := !CheckBoxLagSwitchBOOL
                     CheckBoxLagSwitch.Opt(CheckBoxLagSwitchBOOL ? "Background00FF00" : "Background060606")
                     LagSwitchStatus.Visible := (CheckBoxLagSwitchBOOL ? true : false)
@@ -1563,6 +1538,73 @@ UpdateGunVarsForSettingGui() {
     GunsAmountStatus.Redraw()
 }
 
+/*TestGui := Gui("-Caption +AlwaysOnTop")
+TestGui.BackColor := "060606"
+TestGui.Show("x400 y930 w900 h110")
+; -- Gun Ammo Show Gui -- doesnt work
+GunAmmoShowGui() {
+    static GunAmmoShowGuiShow := false
+    static GunAmountShowW := 200
+    static GunAmountShowH := 300
+
+    global GunAmountShowArray := [
+        [], ; gun name
+        [] ; gun ammo
+    ]
+
+    GunNameArray := [
+        "AK-47", "M4A1", "M700",
+        "M9", "MP5", "FAL",
+        "Remington", "Revolver", "Taser"
+    ]
+
+    try {
+        GameHWND := WinExist("ahk_exe RobloxPlayerBeta.exe")
+        HotbarRegion := { X: 300, Y: 930, W: 900, H: 70 }
+
+        OCR_Result := OCR.FromWindow(GameHWND, HotbarRegion, scale := 3)
+        OCR_CleanResult := StrReplace(Trim(OCR_Result.Text), " ")
+        MsgBox(OCR_Result.Text)
+
+        for CurWord in GunNameArray {
+            if InStr(OCR_CleanResult, CurWord) {
+                GunAmountShowArray[1].Push(CurWord)
+            }
+        }
+    } catch Error as err {
+        MsgBox("OCR CRASHED!`n`nError Type: " . type(err) . "`nReason: " . err.Message . "`nLine: " . err.Line)
+    }
+
+    if (!GunAmmoShowGuiShow) {
+        global GuiAmmoShow
+        GuiAmmoShow := Gui("-Caption +AlwaysOnTop")
+        GuiAmmoShow.BackColor := "060606"
+
+        ; DRAGGABLE title in gun ammo show gui
+        GuiAmmoShow.SetFont("s10 bold cF0F0F0", "Segoe UI")
+        GuiAmmoShow.Add("Text", "x0 y5 w" GunAmountShowW " Center", "DRAGGABLE")
+
+        for i, CurObject in GunAmountShowArray[1] {
+            GuiAmmoShow.Add("Text", "x50 yp+25 w50 BackgroundTrans", GunAmountShowArray[1][i]) ; gun name
+
+            GuiAmmoShow.Add("Text", "x93 yp w50 BackgroundTrans", ":") ; equal to
+
+            GuiAmmoShow.Add("Text", "xp+10 yp w50 BackgroundTrans", "") ; ammo count
+        }
+
+        GunAmmoShowGuiShow := true
+    }
+
+    global IsGunAmmoShowVisible := !IsGunAmmoShowVisible
+
+    ; Shows/closes Gun Amount show Gui
+    if (IsGunAmmoShowVisible) {
+        GuiAmmoShow.Show("w" GunAmountShowW " h" GunAmountShowH "")
+    } else {
+        GuiAmmoShow.Hide()
+    }
+}*/
+
 ; -- Change Log Gui --
 ChangeLogGui() {
     static ChangeLogGuiShow := false
@@ -1579,16 +1621,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.5")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.6")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Fast gun swap info on help gui modified slightly", FirstLog)
+        AddText("Maybe improved hotkeys i havent tested", FirstLog)
 
         ; 2
-        AddText("Shuffle reload can reload to the 10th slot again", DoubleLog)
+        AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
@@ -1616,6 +1658,7 @@ ChangeLogGui() {
         HideChangeLog(*) {
             GuiChangeLog.Hide()
             global IsChangeLogVisible := false
+            ;GunAmmoShowGui() ; <<<<<
         }
 
         ChangeLogGuiShow := true
@@ -1669,7 +1712,7 @@ SuperSleep(ms) {
 }
 
 
-/*~^s:: {
+~^s:: {
     Sleep(200)
     Reload()
-}*/
+}
