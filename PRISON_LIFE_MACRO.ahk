@@ -3,7 +3,10 @@
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-;#MaxThreadsPerHotkey 2
+#MaxThreads 255
+#NoTrayIcon
+
+A_MenuMaskKey := ""
 A_HotkeyInterval := 0
 
 KeyHistory 0
@@ -1585,13 +1588,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.8")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.9")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Made macro run better", FirstLog)
+        AddText("Made macro run better again", FirstLog)
 
         ; 2
         ;AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
