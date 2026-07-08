@@ -293,9 +293,14 @@ IncreaseOrDecreaseShortcutLogic(input) {
 
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
+    ; windows universal is microsoft roblox
     global PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
+    RobloxOpened := WinExist("ahk_exe RobloxPlayerBeta.exe") ? "ahk_exe RobloxPlayerBeta.exe" : "ahk_exe WindowsUniversal.exe"
 
-    if (!CheckBoxLagSwitchBOOL or !PID) {
+    if (!WinExist(RobloxOpened)) {
+        HideTrayTip()
+        TrayTip("Open roblox first")
+        SetTimer(HideTrayTip, 1500)
         return
     }
 
@@ -476,9 +481,7 @@ FreezeRoblox(hk := "") {
 
 ; -- Freeze Functions --
 freeze(FreezeChoice) {
-    targetWin := WinExist("ahk_exe RobloxPlayerBeta.exe")
-        ? "ahk_exe RobloxPlayerBeta.exe"
-        : "ahk_exe ApplicationFrameHost.exe"
+    targetWin := WinExist("ahk_exe RobloxPlayerBeta.exe") ? "ahk_exe RobloxPlayerBeta.exe" : "ahk_exe ApplicationFrameHost.exe"
 
     if !WinExist(targetWin) {
         TrayTip("Roblox not found")
@@ -678,7 +681,7 @@ MainGUI() {
 
     ; Lag switch gui
     GuiThing.SetFont("s7 bold cF0F0F0", "Arial")
-    LagSwitchStatus := GuiThing.Add("Text", "x61 y0 w15 h15 Center 0x200 BackgroundD81F25 Hidden", LagSwitchTL)
+    LagSwitchStatus := GuiThing.Add("Text", "x61 y0 w15 h15 Center 0x200 BackgroundD81F25", LagSwitchTL)
 
     ; Title
     GuiThing.SetFont("s12 bold cF0F0F0", "Segoe UI")
@@ -975,7 +978,7 @@ SettingsGui() {
         OtherSettingsNames := [
             "Shoot Delay", "milisecond1", "Reload Delay",
             "milisecond2", "Pressure Jump", "Sprint Toggle",
-            "Lag Switch", "Sound Beep Toggle"
+            "Sound Beep Toggle"
         ]
 
         OtherSettingsEditbox := [
@@ -1000,7 +1003,7 @@ SettingsGui() {
         }
 
         OtherSettingsCheckbox := [
-            "CheckBoxShiftHolder", "CheckBoxLagSwitch", "CheckBoxSoundBeep",
+            "CheckBoxShiftHolder", "CheckBoxSoundBeep"
         ]
 
         ; -- Other settings --
@@ -1081,7 +1084,7 @@ SettingsGui() {
             else {
                 GuiSetting.SetFont("s12 c060606")
 
-                CurCheckboxCount := i - 5
+                CurCheckboxCount := i - 5 ; number is how many editboxes are in OtherSettingsNames array
                 CurCheckbox := OtherSettingsCheckbox[CurCheckboxCount]
 
                 ; checkbox
@@ -1169,11 +1172,6 @@ SettingsGui() {
                         SprintToggleReset()
                     }
                 case 2:
-                    global CheckBoxLagSwitchBOOL := !CheckBoxLagSwitchBOOL
-                    CheckBoxLagSwitch.Opt(CheckBoxLagSwitchBOOL ? "Background00FF00" : "Background060606")
-                    LagSwitchStatus.Visible := (CheckBoxLagSwitchBOOL ? true : false)
-                    CheckBoxLagSwitch.Redraw()
-                case 3:
                     ; Sound beep
                     global CheckBoxSoundBeepBOOL := !CheckBoxSoundBeepBOOL
                     CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background060606")
@@ -1590,13 +1588,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.9")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V5.0")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Made macro run better again", FirstLog)
+        AddText("Now you can lag switch without needing to toggle it in the settings", FirstLog)
 
         ; 2
         ;AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
@@ -1613,7 +1611,7 @@ ChangeLogGui() {
 
         AddText(ChangeLogTextInput, YposInput) {
             GuiChangeLog.SetFont("s18 bold cF0F0F0", "Segoe UI")
-            GuiChangeLog.Add("Text", "x50 yp+" YposInput " w265 Center", ChangeLogTextInput)
+            GuiChangeLog.Add("Text", "x50 yp+" YposInput " w270 Center", ChangeLogTextInput)
 
             GuiChangeLog.SetFont("s20 bold cF0F0F0", "Segoe UI")
             GuiChangeLog.Add("Text", "x10 yp w5", "•")
