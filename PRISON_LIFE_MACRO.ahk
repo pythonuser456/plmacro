@@ -801,8 +801,7 @@ HelpGui() {
                 To use the fast weapon swap macro,
                  you need to select your inventory slots where your guns are
                  in the settings or use the O/P keybinds.
-                 The recommended shoot delay for 60+ fps is 3 milisecond.
-                 And the recommended shoot delay for 30 fps is 4 milisecond (so your pc doesn't get fried)
+                 The recommended shoot delay is 8 milisecond (might be false)
             )",
             
             " ; pressure jump info
@@ -810,9 +809,9 @@ HelpGui() {
                 To activate the pressure jump macro,
                  put your roblox sensitivity and your mouse pointer speed (search it your windows settings) in the macro settings. 
                  Walk up to one of the pressure jump spots (search up youtube tutorial for the spots). 
-                 Then crouch and shove your head fully into the object. 
-                 Then press G. Also if you set your mouse pointer lower than 4 the script
-                 would automatically set your mouse pointer speed to 4 in the MACRO settings
+                 Then crouch and shove your head fully into the object 
+                 then press G. Also if you set your mouse pointer lower than 4 the script
+                 would automatically set your mouse pointer speed to 4 in the macro settings
                  so the pressure jump would work. The more fps you have, the better the macro works. 
                  If you only have 30 fps or 60 fps this might not work
             )",
@@ -841,7 +840,7 @@ HelpGui() {
 
         ; Credit in help GUI
         GuiHelp.SetFont("s15 cF0F0F0", "Consolas")
-        GuiHelp.Add("Text", "x55 y+25 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiHelp.Add("Text", "x55 y+50 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         ; X button for help GUI
         GuiHelp.SetFont("s17 bold cF0F0F0", "Arial")
@@ -992,7 +991,7 @@ SettingsGui() {
         static IsAutoSaveEditbox := false
         if (LoadedEditboxSettings == "empty") {
             OtherSettingsEditboxValue := [ ; INI use default settings
-                4, ; shoot delay
+                8, ; shoot delay
                 0, ; reload delay
                 0, 0 ; dummy values
                 0, 0 ; pressure jump
@@ -1594,7 +1593,7 @@ ChangeLogGui() {
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Now you can lag switch without needing to toggle it in the settings", FirstLog)
+        AddText("Changed help gui's shoot delay recommendation for fast gun swap to 8 milisecond", FirstLog)
 
         ; 2
         ;AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
