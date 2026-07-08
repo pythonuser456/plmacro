@@ -6,7 +6,6 @@
 #MaxThreads 255
 #NoTrayIcon
 
-
 A_MenuMaskKey := ""
 A_HotkeyInterval := 0
 A_MaxHotkeysPerInterval := 999999
@@ -298,9 +297,8 @@ Lagswitch(hk := "") {
     RobloxOpened := WinExist("ahk_exe RobloxPlayerBeta.exe") ? "ahk_exe RobloxPlayerBeta.exe" : "ahk_exe WindowsUniversal.exe"
 
     if (!WinExist(RobloxOpened)) {
-        HideTrayTip()
-        TrayTip("Open roblox first")
-        SetTimer(HideTrayTip, 1500)
+        ToolTip("Roblox not found")
+        SetTimer () => ToolTip(), -1500
         return
     }
 
@@ -484,8 +482,8 @@ freeze(FreezeChoice) {
     targetWin := WinExist("ahk_exe RobloxPlayerBeta.exe") ? "ahk_exe RobloxPlayerBeta.exe" : "ahk_exe ApplicationFrameHost.exe"
 
     if !WinExist(targetWin) {
-        TrayTip("Roblox not found")
-        SetTimer(HideTrayTip, 1500)
+        ToolTip("Roblox not found")
+        SetTimer () => ToolTip(), -1500
         return
     }
 
@@ -496,8 +494,8 @@ freeze(FreezeChoice) {
     hThread := DllCall("Kernel32.dll\OpenThread", "UInt", 0x1F0FFF, "Int", false, "UInt", winThreadId, "Ptr")
 
     if (!hThread) {
-        HideTrayTip()
-        TrayTip("Failed to connect to roblox window")
+        ToolTip("Failed to connect to Roblox window")
+        SetTimer () => ToolTip(), -1500
         return
     }
 
@@ -1155,7 +1153,9 @@ SettingsGui() {
 
         ; Apply Settings
         GuiSetting.SetFont("s13 bold cF0F0F0", "Arial")
-        GuiSetting.Add("Text", "x475 y350 w120 h40 Center 0x200 BackgroundD81F25", "Apply settings").OnEvent("Click", (*) => KeybindModifier())
+        ApplyButtonSetting := GuiSetting.Add("Text", "x475 y350 w120 h40 Center 0x200 BackgroundD81F25", "Apply settings")
+        ApplyButtonSetting.OnEvent("Click", (*) => KeybindModifier())
+        global ApplyButtonSetting
 
         CheckboxFunction(num) {
             switch (num) {
@@ -1449,8 +1449,16 @@ KeybindModifier(*) {
     if (UseCount >= 2) {
         SaveSettings()
 
-        HideTrayTip()
-        TrayTip("Applied Settings")
+
+        ApplyButtonSetting.Opt("Background00FF7F")
+        SetTimer(MakeApplyButtonRed, 150)
+        ApplyButtonSetting.Redraw()
+    }
+
+    MakeApplyButtonRed() {
+        ApplyButtonSetting.Opt("BackgroundD81F25")
+        ApplyButtonSetting.Redraw()
+        SetTimer(MakeApplyButtonRed, 0) ; turn off SetTimer
     }
 }
 
@@ -1587,16 +1595,16 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V5.0")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V5.1")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Changed help gui's shoot delay recommendation for fast gun swap to 8 milisecond", FirstLog)
+        AddText("Tray tips are replaced with tool tips", FirstLog)
 
         ; 2
-        ;AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
+        AddText("Gave apply setting button an animation", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
@@ -1641,17 +1649,6 @@ ChangeLogGui() {
     } else {
         GuiChangeLog.Hide()
     }
-}
-
-; -- Kill Tray Trip Function --
-HideTrayTip() {
-    TrayTip() ; Clears tray tip
-
-    if (SubStr(A_OSVersion, 1, 3) = "10.") { ; Hides tray trip
-        A_IconHidden := false
-    }
-
-    SetTimer(HideTrayTip, 0) ; if i decide to use SetTimer
 }
 
 ; -- Sleep below 10 ms --
