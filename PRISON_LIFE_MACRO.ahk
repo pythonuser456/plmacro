@@ -3,7 +3,7 @@
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-#MaxThreadsPerHotkey 2
+;#MaxThreadsPerHotkey 2
 A_HotkeyInterval := 0
 
 KeyHistory 0
@@ -14,6 +14,7 @@ SendMode "Input"
 
 SetKeyDelay -1, -1
 SetMouseDelay -1
+SetDefaultMouseSpeed 0
 SetWinDelay -1
 SetControlDelay -1
 
@@ -24,7 +25,6 @@ SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
 
 ; -- Variables --
 ScriptActive := false
-running := false
 ShiftHolder := false
 ShowUi := false
 
@@ -64,11 +64,12 @@ GunSlotCheckboxBoolNames := [
     "GunSlot10CheckboxBool"
 ]
 
+/* ; this doesnt work
 OtherCheckboxSettingVarsValues := []
 mode := ""
 LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves", "OtherCheckboxValues", "empty") ; INI use
 
-/*if (LoadedOtherCheckboxSettings != "empty") {
+if (LoadedOtherCheckboxSettings != "empty") {
     OtherCheckboxSettingVarsValues := StrSplit(LoadedOtherCheckboxSettings, "|")
 
     for i, CurObject in GunSlotCheckboxBoolNames {
@@ -123,7 +124,6 @@ ReloadDelayEditbox := ""
 MousePointerSpeed_Input := ""
 Sens_Input := ""
 
-i := 0
 GunAmountVar := 0
 FastGunSwapChoiceIsHold := true
 
@@ -205,9 +205,22 @@ FastGunSwap(hk := "") {
     else {
         IsFastGunSwapHolding := !IsFastGunSwapHolding
 
-        while (IsFastGunSwapHolding) {
-            OptimizedShoot(ActiveSlots, delay)
+        switch IsFastGunSwapHolding {
+            case true:
+                SetTimer(GunLoop, -1)
+            case false:
+                SetTimer(GunLoop, 0)
         }
+    }
+
+    GunLoop() { ; only for fast gun swap toggle mode
+        if (!IsFastGunSwapHolding) {
+            return
+        }
+
+        OptimizedShoot(ActiveSlots, delay)
+
+        SetTimer(GunLoop, -1)
     }
 }
 
@@ -222,13 +235,7 @@ OptimizedShoot(CurArray, CurDelay) {
 
 ; -- Shuffle Reload --
 ShuffleReload(hk := "") {
-    global ReloadDelayEditbox, running
-
-    if (running) {
-        return
-    }
-
-    running := true
+    global ReloadDelayEditbox
 
     delay := Number(ReloadDelayEditbox.Value)
 
@@ -237,8 +244,6 @@ ShuffleReload(hk := "") {
         SuperSleep(delay)
         Send "{Blind}r"
     }
-
-    running := false
 }
 
 ; -- Decrease Gun Amount Shortcut --
@@ -362,14 +367,6 @@ GetProcessPath(processName) { ; lowkey dont understand what this does but it wor
 
 ; -- Pressure Jump --
 PressureJump(hk := "") {
-    global running
-
-    if (running) {
-        return
-    }
-
-    running := true
-
     if CheckBoxSoundBeepBOOL
         SoundBeep(550, 20)
 
@@ -405,19 +402,10 @@ PressureJump(hk := "") {
     }
 
     global IsCrouching := false
-    running := false
 }
 
 ; -- Freeze Clip --
 FreezeClip(hk := "") {
-    global running
-
-    if (running) {
-        return
-    }
-
-    running := true
-
     ; turn off vars for sprint holder
     global ShiftHolder := false
     global IsCrouching := !IsCrouching
@@ -437,30 +425,19 @@ FreezeClip(hk := "") {
     Sleep(450)
 
     freeze(2) ; stops freezing roblox
-
-    running := false
 }
 
 ; -- Freeze Roblox --
 FreezeRoblox(hk := "") {
-    global running
-
-    if (running) {
-        return
-    }
-
-    running := true
-
     global IsFrozen := !IsFrozen
 
     ; Freeze/Unfreeze
-    if (IsFrozen) {
-        freeze(1)
-    } else {
-        freeze(2)
+    switch IsFrozen {
+        case true:
+            freeze(1)
+        case false:
+            freeze(2)
     }
-
-    running := false
 }
 
 /*; -- Floofy clip -- doesnt work
@@ -1608,13 +1585,13 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.7")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.8")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Fixed the lib bug, now you can use the macro if you couldn't", FirstLog)
+        AddText("Made macro run better", FirstLog)
 
         ; 2
         ;AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
