@@ -6,8 +6,10 @@
 #MaxThreads 255
 #NoTrayIcon
 
+
 A_MenuMaskKey := ""
 A_HotkeyInterval := 0
+A_MaxHotkeysPerInterval := 999999
 
 KeyHistory 0
 ListLines 0
