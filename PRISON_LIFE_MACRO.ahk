@@ -4,9 +4,6 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 #MaxThreadsPerHotkey 2
-try {
-    #Include <OCR>
-}
 
 KeyHistory 0
 ListLines 0
@@ -823,16 +820,7 @@ HelpGui() {
                  The recommended shoot delay for 60+ fps is 3 milisecond.
                  And the recommended shoot delay for 30 fps is 4 milisecond (so your pc doesn't get fried)
             )",
-            " ; lag switch info
-            (Join
-                To use the lag switch feature,
-                 you have to wait until a window called clumsy pops up.
-                 IF YOU SEE A BUTTON CALED "STOP", click it.
-                 IF THE AUTO CONFIG FAILS, set these settings manually in the clumsy app. 
-                 Filtering: outbound and udp.
-                 Check the lag box and set 'Delay(ms)' to 5000. Check the drop box and set 'Chance(%)' to 100.
-                 And check the throttle box and set 'timeframe(ms)' to 1000 and 'Chance(%)' to 100
-            )",
+            
             " ; pressure jump info
             (Join
                 To activate the pressure jump macro,
@@ -888,7 +876,7 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 790
+        HelpGuiH := 630
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
     } else {
@@ -1627,10 +1615,10 @@ ChangeLogGui() {
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
 
         ; 1
-        AddText("Maybe improved hotkeys i havent tested", FirstLog)
+        AddText("Fixed the lib bug, now you can use the macro if you couldn't", FirstLog)
 
         ; 2
-        AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
+        ;AddText("Lag switch improved. Clumsy app isnt needed anymore. You can uninstall clumsy", DoubleLog)
 
         ; 3
         ;AddText("Fixed freeze clip", TripleLog)
