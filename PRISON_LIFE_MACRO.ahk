@@ -4,11 +4,10 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 #MaxThreadsPerHotkey 2
+A_HotkeyInterval := 0
 
 KeyHistory 0
 ListLines 0
-CoordMode "Pixel", "Screen"
-CoordMode "Mouse", "Screen"
 
 ProcessSetPriority "High"
 SendMode "Input"
@@ -1609,7 +1608,7 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.6")
+        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V4.7")
 
         ; -- Change Logs --
         GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
