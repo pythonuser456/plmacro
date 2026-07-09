@@ -280,9 +280,6 @@ IncreaseOrDecreaseShortcutLogic(input) {
 
     GunSlotsLogic(GunAmountVar, input)
 
-    GunsAmountStatus.Value := GunAmountVar
-    GunsAmountStatus.Redraw()
-
     UpdateRealGunStuff()
 
     if CheckBoxSoundBeepBOOL
@@ -1653,8 +1650,7 @@ ChangeLogGui() {
 ; -- Sleep below 10 ms --
 SuperSleep(ms) {
     if (ms <= 0) {
-        DllCall("Sleep", "UInt", 0)
-        return
+        ms := 1
     }
 
     static freq := 0
@@ -1669,7 +1665,7 @@ SuperSleep(ms) {
     target := start + (ms * freq / 1000)
 
     while (current < target) {
-        DllCall("QueryPerformanceCounter", "Int64*", &current)
+        DllCall("QueryPerformanceCounter", "Int64*", &current) 
     }
 }
 
