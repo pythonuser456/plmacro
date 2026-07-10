@@ -860,7 +860,7 @@ HelpGui() {
         ChangelogOpenH := 40
 
         GuiHelp.SetFont("s17 bold cF0F0F0", "Arial")
-        ChangelogOpen := GuiHelp.Add("Text", "x240 y+40 w" ChangelogOpenW " h" ChangelogOpenH " Center 0x200 BackgroundFFC72C", "Change Logs")
+        ChangelogOpen := GuiHelp.Add("Text", "x240 y+40 w" ChangelogOpenW " h" ChangelogOpenH " Center 0x200 BackgroundE1A91A", "Change Logs")
         ;GuiHelp.Add("Text", "xp+5 yp+16 wp BackgroundTrans", "Change Logs")
 
         ChangelogOpen.OnEvent("Click", (*) => ChangeLogGui())
