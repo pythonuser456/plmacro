@@ -34,9 +34,11 @@ ShowUi := false
 CheckBoxShiftHolderBOOL := false
 CheckBoxLagSwitchBOOL := false
 CheckBoxSoundBeepBOOL := false
+CheckBoxTurnOffChangelogBOOL := false
 CheckBoxShiftHolder := ""
 CheckBoxLagSwitch := ""
 CheckBoxSoundBeep := ""
+CheckBoxTurnOffChangelog := ""
 
 GunSlot1CheckboxBool := false
 GunSlot2CheckboxBool := false
@@ -66,30 +68,7 @@ GunSlotCheckboxBoolNames := [
     "GunSlot7CheckboxBool", "GunSlot8CheckboxBool", "GunSlot9CheckboxBool",
     "GunSlot10CheckboxBool"
 ]
-
-/* ; this doesnt work
-OtherCheckboxSettingVarsValues := []
-mode := ""
-LoadedOtherCheckboxSettings := IniRead(SettingSavePathINI, "other_checkbox_saves", "OtherCheckboxValues", "empty") ; INI use
-
-if (LoadedOtherCheckboxSettings != "empty") {
-    OtherCheckboxSettingVarsValues := StrSplit(LoadedOtherCheckboxSettings, "|")
-
-    for i, CurObject in GunSlotCheckboxBoolNames {
-        CurBoolValue := OtherCheckboxSettingVarsValues[i]
-
-        if (CurBoolValue) {
-            mode := "true"
-        } else {
-            mode := "false"
-        }
-
-        GunSlotsLogic(i, mode)
-    }
-}
-*/
-
-global GunSlotCheckboxNames := [
+GunSlotCheckboxNames := [
     "GunSlot1Checkbox", "GunSlot2Checkbox", "GunSlot3Checkbox",
     "GunSlot4Checkbox", "GunSlot5Checkbox", "GunSlot6Checkbox",
     "GunSlot7Checkbox", "GunSlot8Checkbox", "GunSlot9Checkbox",
@@ -102,6 +81,10 @@ KeybindSettingsVars := [
     "LagSwitchKeybind", "PressureJumpKeybind", "FreezeClipKeybind",
     "FreezeRobloxKeybind", "ResetSprintToggleKeybind", "ShowOrMinimizeKeybind",
     "CloseMacroKeybind", "IncreaseGunAmount", "DecreaseGunAmount", "DummyValue"
+]
+
+OtherSettingsCheckboxBOOL := [
+    "CheckBoxShiftHolderBOOL", "CheckBoxSoundBeepBOOL", "CheckBoxTurnOffChangelogBOOL"
 ]
 
 IsHelpVisible := false
@@ -178,9 +161,50 @@ if not (A_IsAdmin or RegExMatch(DllCall("GetCommandLine", "str"), " /restart(?!\
 
 MainGui()
 SettingsGui()
-ChangeLogGui()
+; CHANGE LOG CALL below
 
 OnMessage(0x0201, (*) => PostMessage(0xA1, 2, , , "A")) ; for gui drag
+
+; -- Ini save overwrite --
+; -- Other Checkbox Autoconfig --
+OtherCheckboxSettingVarsValues := []
+Loaded_OtherCheckbox_Settings := IniRead(SettingSavePathINI, "other_checkbox_saves", "OtherCheckboxValues", "empty")
+
+if (Loaded_OtherCheckbox_Settings != "empty") {
+    OtherCheckboxSettingVarsValues := StrSplit(Loaded_OtherCheckbox_Settings, "|")
+
+    for i, CurObject in OtherSettingsCheckboxBOOL {
+        if (i <= OtherCheckboxSettingVarsValues.Length) {
+            CurBoolValue := OtherCheckboxSettingVarsValues[i]
+            if (CurBoolValue == "1") {
+                CheckboxFunction(i)
+            }
+        }
+    }
+}
+
+; -- Gun Checkbox Autoconfig --
+GunCheckboxSettingVarsValues := []
+Loaded_GunCheckbox_Settings := IniRead(SettingSavePathINI, "gun_checkbox_saves", "GunCheckboxValues", "empty") ; INI use
+
+if (Loaded_GunCheckbox_Settings != "empty") {
+    GunCheckboxSettingVarsValues := StrSplit(Loaded_GunCheckbox_Settings, "|")
+
+    for i, CurObject in GunSlotCheckboxBoolNames {
+        if (i <= GunCheckboxSettingVarsValues.Length) {
+            CurBoolValue := GunCheckboxSettingVarsValues[i]
+
+            if (CurBoolValue == "1") {
+                GunSlotsLogic(i, "true")
+            }
+        }
+    }
+}
+
+; CHANGE LOG CALL
+if (!CheckBoxTurnOffChangelogBOOL) {
+    ChangeLogGui()
+}
 
 ; -- Toggle Almost Everything --
 MainToggle(hk := "") {
@@ -797,7 +821,6 @@ HelpGui() {
                  in the settings or use the O/P keybinds.
                  The recommended shoot delay is 8 milisecond (might be false)
             )",
-            
             " ; pressure jump info
             (Join
                 To activate the pressure jump macro,
@@ -832,9 +855,20 @@ HelpGui() {
             }
         }
 
+        ; Changelog button
+        ChangelogOpenW := 200
+        ChangelogOpenH := 40
+
+        GuiHelp.SetFont("s17 bold cF0F0F0", "Arial")
+        ChangelogOpen := GuiHelp.Add("Text", "x240 y+40 w" ChangelogOpenW " h" ChangelogOpenH " Center 0x200 BackgroundFFC72C", "Change Logs")
+        ;GuiHelp.Add("Text", "xp+5 yp+16 wp BackgroundTrans", "Change Logs")
+
+        ChangelogOpen.OnEvent("Click", (*) => ChangeLogGui())
+        global ChangelogOpen, ChangelogOpenH, ChangelogOpenW
+
         ; Credit in help GUI
         GuiHelp.SetFont("s15 cF0F0F0", "Consolas")
-        GuiHelp.Add("Text", "x55 y+50 w530 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiHelp.Add("Text", "x0 y+10 w680 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         ; X button for help GUI
         GuiHelp.SetFont("s17 bold cF0F0F0", "Arial")
@@ -853,9 +887,11 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 630
+        HelpGuiH := 680
+
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
+        ;WinSetRegion("0-0 w" ChangelogOpenW " h" ChangelogOpenH " r20-20", ChangelogOpen.Hwnd) ; changelog button
     } else {
         GuiHelp.Hide()
     }
@@ -868,7 +904,7 @@ SettingsGui() {
     if (!SettingsGuiShow) {
         global GuiSetting, Sens_Input, MousePointerSpeed_Input, GunsSettingEditbox
         global GunsAmountStatus, ShootDelayEditbox, ReloadDelayEditbox, GunAmountVar
-        global CheckBoxShiftHolder, CheckBoxLagSwitch, CheckBoxSoundBeep
+        global CheckBoxShiftHolder, CheckBoxLagSwitch, CheckBoxSoundBeep, CheckBoxTurnOffChangelog
 
         global GunSlot1CheckboxBool, GunSlot2CheckboxBool, GunSlot3CheckboxBool
         global GunSlot4CheckboxBool, GunSlot5CheckboxBool, GunSlot6CheckboxBool
@@ -971,7 +1007,7 @@ SettingsGui() {
         OtherSettingsNames := [
             "Shoot Delay", "milisecond1", "Reload Delay",
             "milisecond2", "Pressure Jump", "Sprint Toggle",
-            "Sound Beep Toggle"
+            "Sound Beep Toggle", "Turn Off Changelog"
         ]
 
         OtherSettingsEditbox := [
@@ -996,7 +1032,7 @@ SettingsGui() {
         }
 
         OtherSettingsCheckbox := [
-            "CheckBoxShiftHolder", "CheckBoxSoundBeep"
+            "CheckBoxShiftHolder", "CheckBoxSoundBeep", "CheckBoxTurnOffChangelog"
         ]
 
         ; -- Other settings --
@@ -1147,36 +1183,38 @@ SettingsGui() {
         GuiSetting.SetFont("s17 bold cF0F0F0", "Arial")
         GuiSetting.Add("Text", "x951 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideSetting())
 
-        ; Apply Settings
-        GuiSetting.SetFont("s13 bold cF0F0F0", "Arial")
-        ApplyButtonSetting := GuiSetting.Add("Text", "x475 y350 w120 h40 Center 0x200 BackgroundD81F25", "Apply settings")
+        ; Apply button
+        GuiSetting.SetFont("s11 bold cF0F0F0", "Arial")
+        ApplyButtonSetting := GuiSetting.Add("Text", "x445 y375 w170 h50 Center 0x200 BackgroundD81F25", "Save && Apply Settings")
+
         ApplyButtonSetting.OnEvent("Click", (*) => KeybindModifier())
         global ApplyButtonSetting
 
-        CheckboxFunction(num) {
-            switch (num) {
-                case 1:
-                    ; Sprint toggle
-                    global CheckBoxShiftHolderBOOL := !CheckBoxShiftHolderBOOL
-                    CheckBoxShiftHolder.Opt(CheckBoxShiftHolderBOOL ? "Background00FF00" : "Background060606")
-                    ShiftHolderStatus.Visible := (CheckBoxShiftHolderBOOL ? true : false)
-                    CheckBoxShiftHolder.Redraw()
+        ; Update Button
+        UpdateButtonW := 130
+        UpdateButtonH := 40
 
-                    ; Resets shift holder if checkbox is disabled
-                    if (!CheckBoxShiftHolderBOOL) {
-                        SprintToggleReset()
-                    }
-                case 2:
-                    ; Sound beep
-                    global CheckBoxSoundBeepBOOL := !CheckBoxSoundBeepBOOL
-                    CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background060606")
-                    CheckBoxSoundBeep.Redraw()
+        UpdateButtonSetting := GuiSetting.Add("Text", "x800 y420 w" UpdateButtonW " h" UpdateButtonH " Center 0x200 BackgroundD81F25", "UPDATE MACRO")
+        ;GuiSetting.Add("Text", "xp+5 yp+16 wp BackgroundTrans", "UPDATE MACRO")
+
+        UpdateButtonSetting.OnEvent("Click", (*) => UpdateMacro())
+        UpdateButtonSetting.Redraw()
+        global UpdateButtonSetting, UpdateButtonH, UpdateButtonW
+
+        UpdateMacro() {
+            try {
+                Download("https://raw.githubusercontent.com/pythonuser456/plmacro/refs/heads/main/PRISON_LIFE_MACRO.ahk", "PRISON_LIFE_MACRO.ahk")
+                MsgBox("Reopen the macro file", "UPDATE INFO", 262144)
+                StopMacro()
+            } catch {
+                MsgBox("Update failed", "UPDATE INFO", 262144)
             }
         }
 
         ; Credit in settings GUI
         GuiSetting.SetFont("s15 cF0F0F0", "Consolas")
-        GuiSetting.Add("Text", "x290 y450 w490 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.Add("Text", "x40 y450 w1000 Center BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
+
 
         SettingsGuiShow := true
         KeybindModifier()
@@ -1190,15 +1228,41 @@ SettingsGui() {
         SettingsGuiShowH := 600
 
         GuiSetting.Show("w" SettingsGuiShowW " h" SettingsGuiShowH "")
+
         WinSetRegion("0-0 w" SettingsGuiShowW " h" SettingsGuiShowH " r20-20", GuiSetting.Hwnd)
+        ;WinSetRegion("0-0 w" UpdateButtonW " h" UpdateButtonH " r20-20", UpdateButtonSetting.Hwnd) ; Update
     } else {
         GuiSetting.Hide()
     }
 }
 
+CheckboxFunction(num) {
+    switch (num) {
+        case 1:
+            ; Sprint toggle
+            global CheckBoxShiftHolderBOOL := !CheckBoxShiftHolderBOOL
+            CheckBoxShiftHolder.Opt(CheckBoxShiftHolderBOOL ? "Background00FF00" : "Background060606")
+            ShiftHolderStatus.Visible := (CheckBoxShiftHolderBOOL ? true : false)
+            CheckBoxShiftHolder.Redraw()
+
+            ; Resets shift holder if checkbox is disabled
+            if (!CheckBoxShiftHolderBOOL) {
+                SprintToggleReset()
+            }
+        case 2:
+            ; Sound beep
+            global CheckBoxSoundBeepBOOL := !CheckBoxSoundBeepBOOL
+            CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background060606")
+            CheckBoxSoundBeep.Redraw()
+        case 3:
+            global CheckBoxTurnOffChangelogBOOL := !CheckBoxTurnOffChangelogBOOL
+            CheckBoxTurnOffChangelog.Opt(CheckBoxTurnOffChangelogBOOL ? "Background00FF00" : "Background060606")
+            CheckBoxTurnOffChangelog.Redraw()
+    }
+}
+
 GunSlotsLogic(slot, type) {
     global
-    global GunSlotCheckboxNames
 
     CurGunCheckboxBool := GunSlotCheckboxBoolNames[slot]
     CurGunCheckbox := GunSlotCheckboxNames[slot]
@@ -1253,6 +1317,17 @@ SaveSettings() {
     EditboxValueSaves := RTrim(EditboxValueSaves, "|")
 
     IniWrite(EditboxValueSaves, SettingSavePathINI, "editbox_saves", "EditboxValues")
+
+    ; -- Other checkbox saves --
+    OtherCheckboxValueSaves := ""
+
+    for CurObject in OtherSettingsCheckboxBOOL {
+        OtherCheckboxValueSaves .= %CurObject% . "|"
+    }
+
+    OtherCheckboxValueSaves := RTrim(OtherCheckboxValueSaves, "|")
+
+    IniWrite(OtherCheckboxValueSaves, SettingSavePathINI, "other_checkbox_saves", "OtherCheckboxValues")
 
     ; -- Gun checkbox saves --
     GunCheckboxValueSaves := ""
@@ -1441,20 +1516,25 @@ KeybindModifier(*) {
             HotIf()
         }
     }
+
     UpdateGunVarsForSettingGui()
+
     if (UseCount >= 2) {
         SaveSettings()
 
-
         ApplyButtonSetting.Opt("Background00FF7F")
-        SetTimer(MakeApplyButtonRed, 150)
+
         ApplyButtonSetting.Redraw()
+
+        SetTimer(MakeApplyButtonRed, -150)
     }
 
     MakeApplyButtonRed() {
         ApplyButtonSetting.Opt("BackgroundD81F25")
+
         ApplyButtonSetting.Redraw()
-        SetTimer(MakeApplyButtonRed, 0) ; turn off SetTimer
+
+        ;WinSetRegion("0-0 w" ApplySettingsW " h" ApplySettingsH " r20-20", ApplyButtonSetting.Hwnd)
     }
 }
 
@@ -1583,38 +1663,36 @@ ChangeLogGui() {
         global GuiChangeLog
         GuiChangeLog := Gui("-Caption +AlwaysOnTop")
         GuiChangeLog.BackColor := "060606" ; Black hex code
-        static FirstLog := 50
+        static FirstLog := 65
         static OneLog := 45
-        static DoubleLog := 75
-        static TripleLog := 105
-        static QuadrupleLog := 150
+        static DoubleLog := 70
+        static TripleLog := 95
+        static QuadrupleLog := 140
 
         ; Title for Change Log GUI
-        GuiChangeLog.SetFont("s25 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w360 Center", "Change Log V5.1")
+        GuiChangeLog.SetFont("s27 bold cF0F0F0", "Segoe UI")
+        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.0")
 
         ; -- Change Logs --
-        GuiChangeLog.SetFont("s30 bold cF0F0F0", "Segoe UI")
-
         ; 1
-        AddText("Tray tips are replaced with tool tips", FirstLog)
+        AddText("Save && Apply Button saves every setting", FirstLog)
 
         ; 2
-        AddText("Gave apply setting button an animation", DoubleLog)
+        AddText("Setting to turn off change log when macro starts", DoubleLog)
 
         ; 3
-        ;AddText("Fixed freeze clip", TripleLog)
+        AddText("Added a button to view change log manually in help gui", DoubleLog)
 
         ; 4
-        ;AddText("Improved macro closing", TripleLog)
+        AddText("Added update button in settings gui so you don't have to open the launcher to update", TripleLog)
 
         ; Credit in Change Log GUI
-        GuiChangeLog.SetFont("s10 cF0F0F0", "Consolas")
-        GuiChangeLog.Add("Text", "x0 y380 w360 Center", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiChangeLog.SetFont("s12 cF0F0F0", "Consolas")
+        GuiChangeLog.Add("Text", "x0 y490 w430 Center", "Made By @Idkwhattonamethis223 On Youtube")
 
         AddText(ChangeLogTextInput, YposInput) {
-            GuiChangeLog.SetFont("s18 bold cF0F0F0", "Segoe UI")
-            GuiChangeLog.Add("Text", "x50 yp+" YposInput " w270 Center", ChangeLogTextInput)
+            GuiChangeLog.SetFont("s15 cF0F0F0", "Segoe UI")
+            GuiChangeLog.Add("Text", "x80 yp+" YposInput " w270 Center", ChangeLogTextInput)
 
             GuiChangeLog.SetFont("s20 bold cF0F0F0", "Segoe UI")
             GuiChangeLog.Add("Text", "x10 yp w5", "•")
@@ -1622,13 +1700,12 @@ ChangeLogGui() {
 
         ; X button in Change Log GUI
         GuiChangeLog.SetFont("s13 bold cF0F0F0", "Arial")
-        GuiChangeLog.Add("Text", "x329 y0 w30 h20 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideChangeLog())
+        GuiChangeLog.Add("Text", "x393 y0 w30 h20 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideChangeLog())
 
         ; function for hiding setting GUI
         HideChangeLog(*) {
             GuiChangeLog.Hide()
             global IsChangeLogVisible := false
-            ;GunAmmoShowGui() ; <<<<<
         }
 
         ChangeLogGuiShow := true
@@ -1638,8 +1715,8 @@ ChangeLogGui() {
 
     ; Shows/closes changelog GUI
     if (IsChangeLogVisible) {
-        ChangeLogW := 450
-        ChangeLogH := 500
+        ChangeLogW := 530
+        ChangeLogH := 650
         GuiChangeLog.Show("w" ChangeLogW " h" ChangeLogH "")
         WinSetRegion("0-0 w" ChangeLogW " h" ChangeLogH " r20-20", GuiChangeLog.Hwnd)
     } else {
@@ -1665,12 +1742,12 @@ SuperSleep(ms) {
     target := start + (ms * freq / 1000)
 
     while (current < target) {
-        DllCall("QueryPerformanceCounter", "Int64*", &current) 
+        DllCall("QueryPerformanceCounter", "Int64*", &current)
     }
 }
 
 
-~^s:: {
+/*~^s:: {
     Sleep(200)
     Reload()
 }
