@@ -39,7 +39,11 @@ SetMouseDelay -1
 SetWinDelay -1
 SetControlDelay -1
 
-DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
+DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0) ; for super sleep
+
+DllCall("SetProcessWorkingSetSize", "Ptr", -1, "UPtr", -1, "UPtr", -1, "UInt", 1) ; Pin macro to fastest CPU faster memory cache
+
+DllCall("winmm\timeBeginPeriod", "UInt", 1)
 
 ; -- Create new lag switch rule --
 PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
@@ -59,12 +63,32 @@ try {
     ruleObj.ApplicationName := CurrentPath
     ruleObj.Direction := 2 ; Outbound
     ruleObj.Action := 0    ; Block
+    
+    ruleObj.InterfaceTypes := "All" 
+    
     ruleObj.Enabled := false
 
     rules.Add(ruleObj)
 
     ; Lock the rule
     fwRule := rules.Item("RobloxLagSwitch")
+}
+
+; -- Give Roblox Max Performance --
+try {
+    RunWait('REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\RobloxPlayerBeta.exe" /f', , "Hide")
+    RunWait('REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\WindowsUniversal.exe" /f', , "Hide")
+}
+
+; 2. Restore default Fullscreen Optimization handlers
+try {
+    RunWait('REG DELETE "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "' . GetProcessPath("RobloxPlayerBeta.exe") . '" /f', , "Hide")
+}
+
+; 3. Revert your network congestion configurations back to Windows stock defaults
+try {
+    RunWait('netsh int tcp set global autotuninglevel=normal', , "Hide")
+    RunWait('netsh int tcp set global ecncapability=disabled', , "Hide")
 }
 
 ; -- Settings load --
@@ -358,7 +382,7 @@ IncreaseOrDecreaseShortcutLogic(input) {
 
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
-    Critical
+    Critical 1
 
     IsLagging := !IsLagging
     global LagSwitchTL, IsLagging
@@ -660,19 +684,15 @@ SprintToggleReset(hk := "") {
     Send "/"
 }
 
-#HotIf IsChatting
+#HotIf IsSet(IsChatting) &&  IsChatting
 ; If done chatting then allow toggle sprint again
-*$Enter:: {
+~*$Enter:: {
     global IsChatting := false
-
-    Send("{Enter}")
 }
 
 ; If done chatting then allow toggle sprint again
 ~$*LButton:: {
     global IsChatting := false
-
-    Click
 }
 
 #HotIf IsCrouching
@@ -1558,8 +1578,7 @@ KeybindModifier(*) {
                 HotIf (*) => ScriptActive
             }
 
-            Hotkey(CurAssignedHotkey, FuncName.Bind())
-            Hotkey(CurAssignedHotkey, "On")
+            Hotkey(CurAssignedHotkey, FuncName, "B I1")
 
             HotIf()
         }
@@ -1719,17 +1738,17 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s27 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.1")
+        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.2")
 
         ; -- Change Logs --
         ; 1
-        AddText("Save && Apply Button now saves fast gun swap mode", FirstLog)
+        AddText("Improved Roblox performance maybe", FirstLog)
 
         ; 2
-        AddText("Fast gun swap turns off when main toggle is off", DoubleLog)
+        AddText("Made lag switch delay shorter", DoubleLog)
 
         ; 3
-        AddText("Improved lag switch, the slight delay is shorter now", DoubleLog)
+        AddText("Made macro keybind inputs faster", DoubleLog)
 
         ; 4
         ;AddText("Added update button in settings gui so you don't have to open the launcher to update", TripleLog)
