@@ -201,6 +201,15 @@ if (Loaded_GunCheckbox_Settings != "empty") {
     }
 }
 
+; -- Fast Gun Swap Mode autoconfig --
+Loaded_ShootMode_Setting := IniRead(SettingSavePathINI, "shoot_mode_save", "ShootModeValue", "empty")
+
+if (Loaded_ShootMode_Setting != "empty")  {
+    if (Loaded_ShootMode_Setting == "0") {
+        FastGunSwapHoldOrToggle("Toggle")
+    }
+}
+
 ; CHANGE LOG CALL
 if (!CheckBoxTurnOffChangelogBOOL) {
     ChangeLogGui()
@@ -253,6 +262,10 @@ FastGunSwap(hk := "") {
 
 OptimizedShoot(CurArray, CurDelay) {
     for Key in CurArray {
+        if (!ScriptActive) {
+            return
+        }
+
         Send("{Blind}{" Key "}")
         SuperSleep(CurDelay)
         Click()
@@ -1339,6 +1352,11 @@ SaveSettings() {
     GunCheckboxValueSaves := RTrim(GunCheckboxValueSaves, "|")
 
     IniWrite(GunCheckboxValueSaves, SettingSavePathINI, "gun_checkbox_saves", "GunCheckboxValues")
+
+    ; -- Fast gun swap mode save --
+    ShootModeValueSave := FastGunSwapChoiceIsHold
+
+    IniWrite(ShootModeValueSave, SettingSavePathINI, "shoot_mode_save", "ShootModeValue")
 }
 
 ; Update real gun stuff
@@ -1671,20 +1689,20 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s27 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.0")
+        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.1")
 
         ; -- Change Logs --
         ; 1
-        AddText("Save && Apply Button saves every setting", FirstLog)
+        AddText("Save && Apply Button now saves fast gun swap mode", FirstLog)
 
         ; 2
-        AddText("Setting to turn off change log when macro starts", DoubleLog)
+        AddText("Fast gun swap turns off when main toggle is off", DoubleLog)
 
         ; 3
-        AddText("Added a button to view change log manually in help gui", DoubleLog)
+        ;AddText("Added a button to view change log manually in help gui", DoubleLog)
 
         ; 4
-        AddText("Added update button in settings gui so you don't have to open the launcher to update", TripleLog)
+        ;AddText("Added update button in settings gui so you don't have to open the launcher to update", TripleLog)
 
         ; Credit in Change Log GUI
         GuiChangeLog.SetFont("s12 cF0F0F0", "Consolas")
