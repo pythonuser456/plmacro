@@ -42,31 +42,37 @@ SetControlDelay -1
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
 
 ; -- Create new lag switch rule --
-global PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
-Path := GetProcessPath(PID)
+PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
+CurrentPath := GetProcessPath(PID)
 
-fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
-rules := fwPolicy2.Rules
+try {
+    ; Cache the policy manager globally
+    fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
+    rules := fwPolicy2.Rules
 
-; Clean up old rule
-try rules.Remove("RobloxLagSwitch")
+    ; Remove old rule
+    try rules.Remove("RobloxLagSwitch")
 
-; Create new rule
-rule := ComObject("HNetCfg.FwRule")
-rule.Name := "RobloxLagSwitch"
-rule.ApplicationName := Path
-rule.Direction := 2 ; NET_FW_RULE_DIR_OUT
-rule.Action := 0    ; NET_FW_ACTION_BLOCK
-rule.Enabled := false
+    ; Create new rule
+    ruleObj := ComObject("HNetCfg.FwRule")
+    ruleObj.Name := "RobloxLagSwitch"
+    ruleObj.ApplicationName := CurrentPath
+    ruleObj.Direction := 2 ; Outbound
+    ruleObj.Action := 0    ; Block
+    ruleObj.Enabled := false
 
-rules.Add(rule)
+    rules.Add(ruleObj)
+
+    ; Lock the rule
+    fwRule := rules.Item("RobloxLagSwitch")
+}
 
 ; -- Settings load --
 SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
 
 ; -- Variables --
 ScriptActive := false
-ShiftHolder := false
+global ShiftHolder := false
 ShowUi := false
 
 CheckBoxShiftHolderBOOL := false
@@ -129,8 +135,8 @@ IsHelpVisible := false
 IsSettingsVisible := true
 IsGunAmmoShowVisible := false
 IsChangeLogVisible := false
-IsCrouching := false
-IsChatting := false
+global IsCrouching := false
+global IsChatting := false
 IsLagging := false
 IsFrozen := false
 IsFastGunSwapHolding := false
@@ -238,7 +244,7 @@ if (!CheckBoxTurnOffChangelogBOOL) {
     ChangeLogGui()
 }
 
-; -- Toggle Almost Everything --
+; -- Main Toggle --
 MainToggle(hk := "") {
     global ScriptActive := !ScriptActive
 
@@ -247,7 +253,7 @@ MainToggle(hk := "") {
     StatusLabel.Redraw()
 
     if CheckBoxSoundBeepBOOL
-        SoundBeep(ScriptActive ? 550 : 400, 20)
+        DllCall("Beep", "UInt", ScriptActive ? 550 : 400, "UInt", 20)
 }
 
 ; -- Fast Gun Swap --
@@ -307,6 +313,10 @@ ShuffleReload(hk := "") {
         SuperSleep(delay)
         Send "{Blind}r"
     }
+
+    if (CheckBoxSoundBeepBOOL) {
+        DllCall("Beep", "UInt", 550, "UInt", 20)
+    }
 }
 
 ; -- Decrease Gun Amount Shortcut --
@@ -343,26 +353,19 @@ IncreaseOrDecreaseShortcutLogic(input) {
     UpdateRealGunStuff()
 
     if CheckBoxSoundBeepBOOL
-        SoundBeep(550, 20)
+        DllCall("Beep", "UInt", 550, "UInt", 20)
 }
 
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
-    ; windows universal is microsoft roblox
-    RobloxOpened := WinExist("ahk_exe RobloxPlayerBeta.exe") ? "ahk_exe RobloxPlayerBeta.exe" : "ahk_exe WindowsUniversal.exe"
-
-    if (!WinExist(RobloxOpened)) {
-        ToolTip("Roblox not found")
-        SetTimer () => ToolTip(), -1500
-        return
-    }
+    Critical
 
     IsLagging := !IsLagging
-    global LagSwitchTL, IsLagging, currentPath
+    global LagSwitchTL, IsLagging
 
     switch IsLagging {
         case true:
-            LagSwitchTurn(true)
+            try fwRule.Enabled := true
 
             LagSwitchTL := 19
             LagSwitchStatus.Value := LagSwitchTL
@@ -372,7 +375,7 @@ Lagswitch(hk := "") {
         case false:
             SetTimer(LagSwitchCount, 0)
 
-            LagSwitchTurn(false)
+            try fwRule.Enabled := false
 
             LagSwitchTL := 0
             LagSwitchStatus.Value := 0
@@ -381,17 +384,15 @@ Lagswitch(hk := "") {
     }
 
     if (CheckBoxSoundBeepBOOL) {
-        SoundBeep(IsLagging ? 550 : 400, 20)
+        DllCall("Beep", "UInt", IsLagging ? 550 : 400, "UInt", 20)
     }
 }
 
-LagSwitchTurn(bool) { ; Instant network rules toggle via COM
+/*LagSwitchTurn(bool) { ; lowkey useless
     try {
-        fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
-        rule := fwPolicy2.Rules.Item("RobloxLagSwitch")
-        rule.Enabled := bool
+        fwRule.Enabled := bool
     }
-}
+}*/
 
 LagSwitchCount() {
     global IsLagging, LagSwitchTL
@@ -407,14 +408,14 @@ LagSwitchCount() {
     if (LagSwitchTL <= 0) {
         IsLagging := false
         SetTimer(LagSwitchCount, 0) ; Turn off timer
-        LagSwitchTurn(false)
+        try fwRule.Enabled := false
 
         LagSwitchStatus.Value := 0
         LagSwitchStatus.Opt("BackgroundD81F25")
         LagSwitchStatus.Redraw()
 
         if CheckBoxSoundBeepBOOL
-            SoundBeep(400, 20)
+            DllCall("Beep", "UInt", 400, "UInt", 20)
     }
 }
 
@@ -429,7 +430,7 @@ GetProcessPath(processName) { ; lowkey dont understand what this does but it wor
 ; -- Pressure Jump --
 PressureJump(hk := "") {
     if CheckBoxSoundBeepBOOL
-        SoundBeep(550, 20)
+        DllCall("Beep", "UInt", 550, "UInt", 20)
 
     if (Sens_Input.Value == 0 or MousePointerSpeed_Input.Value == 0) {
         MsgBox("Put your Roblox Sensitivity and Mouse Pointer Speed in the settings. More info in the help GUI")
@@ -486,6 +487,10 @@ FreezeClip(hk := "") {
     Sleep(450)
 
     freeze(2) ; stops freezing roblox
+
+    if (CheckBoxSoundBeepBOOL) {
+        DllCall("Beep", "UInt", 550, "UInt", 20)
+    }
 }
 
 ; -- Freeze Roblox --
@@ -592,7 +597,12 @@ FreezeCount() { ; useless function
         Send "{LShift up}"
         ShiftHolderStatus.Opt("BackgroundD81F25")
     }
+
     ShiftHolderStatus.Redraw()
+
+    if (CheckBoxSoundBeepBOOL) {
+        DllCall("Beep", "UInt", 550, "UInt", 20)
+    }
 }
 
 ; Disables sprint toggle if crouched
