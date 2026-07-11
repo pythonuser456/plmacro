@@ -63,9 +63,9 @@ try {
     ruleObj.ApplicationName := CurrentPath
     ruleObj.Direction := 2 ; Outbound
     ruleObj.Action := 0    ; Block
-    
-    ruleObj.InterfaceTypes := "All" 
-    
+
+    ruleObj.InterfaceTypes := "All"
+
     ruleObj.Enabled := false
 
     rules.Add(ruleObj)
@@ -257,7 +257,7 @@ if (Loaded_GunCheckbox_Settings != "empty") {
 ; -- Fast Gun Swap Mode autoconfig --
 Loaded_ShootMode_Setting := IniRead(SettingSavePathINI, "shoot_mode_save", "ShootModeValue", "empty")
 
-if (Loaded_ShootMode_Setting != "empty")  {
+if (Loaded_ShootMode_Setting != "empty") {
     if (Loaded_ShootMode_Setting == "0") {
         FastGunSwapHoldOrToggle("Toggle")
     }
@@ -289,6 +289,8 @@ FastGunSwap(hk := "") {
     if (FastGunSwapChoiceIsHold) {
         while GetKeyState(SecondaryFastGunSwapKeybindString, "P") {
             OptimizedShoot(ActiveSlots, delay)
+
+            Sleep(-1)
         }
     }
     else {
@@ -302,7 +304,7 @@ FastGunSwap(hk := "") {
         }
     }
 
-    GunLoop() { ; only for fast gun swap toggle mode
+    GunLoop() {
         if (!IsFastGunSwapHolding) {
             return
         }
@@ -448,7 +450,7 @@ GetProcessPath(processName) { ; lowkey dont understand what this does but it wor
         if proc.ExecutablePath
             return proc.ExecutablePath
     }
-    throw Error("Process not found")
+    throw Error("Roblox not found, reopen the macro when you have opened Roblox if you wan the lag switch to work")
 }
 
 ; -- Pressure Jump --
@@ -684,7 +686,7 @@ SprintToggleReset(hk := "") {
     Send "/"
 }
 
-#HotIf IsSet(IsChatting) &&  IsChatting
+#HotIf IsSet(IsChatting) && IsChatting
 ; If done chatting then allow toggle sprint again
 ~*$Enter:: {
     global IsChatting := false
@@ -1519,7 +1521,7 @@ KeybindModifier(*) {
     ]
 
     for i, KeybindObject in Keybinds {
-        CurText := KeybindObject.Value
+        CurText := Trim(KeybindObject.Value)
         HelpText := HelpGuiVariables[i]
         VarName := FinalKeybindString[i]
         FuncName := FunctionNames[i]
@@ -1528,7 +1530,7 @@ KeybindModifier(*) {
             continue
         }
 
-        OldHotkey := Max(1, 1) ? (%VarName%) : ""
+        OldHotkey := %VarName%
 
         ; Deactivate old hotkey
         if (OldHotkey != "") {
@@ -1544,13 +1546,15 @@ KeybindModifier(*) {
             if (VarName == "FastGunSwapKeybindString") {
                 SecondaryFastGunSwapKeybindString := "LButton"
             }
-        } else {
+        }
+        else {
             %VarName% := KeybindStringAdd . CurText
 
             if (VarName == "FastGunSwapKeybindString") {
                 SecondaryFastGunSwapKeybindString := CurText
             }
         }
+
         CurAssignedHotkey := %VarName%
 
         ; Help gui update
@@ -1572,13 +1576,12 @@ KeybindModifier(*) {
                 }
             }
 
-            if (IsNonHotIf) {
-                HotIf()
-            } else {
+            if (!IsNonHotIf) {
                 HotIf (*) => ScriptActive
             }
 
             Hotkey(CurAssignedHotkey, FuncName, "B I1")
+            Hotkey(CurAssignedHotkey, "On")
 
             HotIf()
         }
@@ -1818,3 +1821,4 @@ SuperSleep(ms) {
     Sleep(200)
     Reload()
 }
+
