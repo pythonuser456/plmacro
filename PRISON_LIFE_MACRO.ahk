@@ -2,6 +2,24 @@
 ; this is lowkey hardcoded
 
 #Requires AutoHotkey v2.0
+
+; -- Admin call --
+if not (A_IsAdmin or RegExMatch(DllCall("GetCommandLine", "str"), " /restart(?!\S)")) {
+    try {
+        if A_IsCompiled {
+            Run '*RunAs "' A_ScriptFullPath '" /restart'
+        }
+        else {
+            Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+        }
+
+        StopMacro()
+    } catch {
+        MsgBox("Warning: Some features may not work properly or not work at all. If you want the best experience close the macro, open it back, and run as an administrator")
+    }
+}
+
+; -- Auto Execute --
 #SingleInstance Force
 #MaxThreads 255
 #NoTrayIcon
@@ -22,6 +40,26 @@ SetWinDelay -1
 SetControlDelay -1
 
 DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &CurrentResolution := 0)
+
+; -- Create new lag switch rule --
+global PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
+Path := GetProcessPath(PID)
+
+fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
+rules := fwPolicy2.Rules
+
+; Clean up old rule
+try rules.Remove("RobloxLagSwitch")
+
+; Create new rule
+rule := ComObject("HNetCfg.FwRule")
+rule.Name := "RobloxLagSwitch"
+rule.ApplicationName := Path
+rule.Direction := 2 ; NET_FW_RULE_DIR_OUT
+rule.Action := 0    ; NET_FW_ACTION_BLOCK
+rule.Enabled := false
+
+rules.Add(rule)
 
 ; -- Settings load --
 SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
@@ -144,21 +182,6 @@ IncreaseGunAmount := ""
 DecreaseGunAmount := ""
 
 ; -- Main GUI Call --
-if not (A_IsAdmin or RegExMatch(DllCall("GetCommandLine", "str"), " /restart(?!\S)")) {
-    try {
-        if A_IsCompiled {
-            Run '*RunAs "' A_ScriptFullPath '" /restart'
-        }
-        else {
-            Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
-        }
-
-        StopMacro()
-    } catch {
-        MsgBox("Warning: Some features may not work properly or not work at all. If you want the best experience close the macro, open it back, and run as an administrator")
-    }
-}
-
 MainGui()
 SettingsGui()
 ; CHANGE LOG CALL below
@@ -326,7 +349,6 @@ IncreaseOrDecreaseShortcutLogic(input) {
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
     ; windows universal is microsoft roblox
-    global PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
     RobloxOpened := WinExist("ahk_exe RobloxPlayerBeta.exe") ? "ahk_exe RobloxPlayerBeta.exe" : "ahk_exe WindowsUniversal.exe"
 
     if (!WinExist(RobloxOpened)) {
@@ -336,7 +358,6 @@ Lagswitch(hk := "") {
     }
 
     IsLagging := !IsLagging
-    CurrentPath := GetProcessPath(PID)
     global LagSwitchTL, IsLagging, currentPath
 
     switch IsLagging {
@@ -364,12 +385,11 @@ Lagswitch(hk := "") {
     }
 }
 
-LagSwitchTurn(bool) { ; suspend / resume roblox
-    switch bool {
-        case true:
-            RunWait('netsh advfirewall firewall add rule name="RobloxLagSwitch" dir=out action=block program="' . CurrentPath . '" enable=yes', , "Hide")
-        case false:
-            RunWait('netsh advfirewall firewall delete rule name="RobloxLagSwitch"', , "Hide")
+LagSwitchTurn(bool) { ; Instant network rules toggle via COM
+    try {
+        fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
+        rule := fwPolicy2.Rules.Item("RobloxLagSwitch")
+        rule.Enabled := bool
     }
 }
 
@@ -686,7 +706,7 @@ MinimizeOrShowGUI(hk := "") {
 StopMacro(hk := "") {
     Send "{LShift up}"
 
-    try WinClose("ahk_exe clumsy.exe")
+    try rules.Remove("RobloxLagSwitch")
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
 
     ; Close autohotkey
@@ -1699,7 +1719,7 @@ ChangeLogGui() {
         AddText("Fast gun swap turns off when main toggle is off", DoubleLog)
 
         ; 3
-        ;AddText("Added a button to view change log manually in help gui", DoubleLog)
+        AddText("Improved lag switch, the slight delay is shorter now", DoubleLog)
 
         ; 4
         ;AddText("Added update button in settings gui so you don't have to open the launcher to update", TripleLog)
