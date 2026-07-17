@@ -289,8 +289,6 @@ FastGunSwap(hk := "") {
     if (FastGunSwapChoiceIsHold) {
         while GetKeyState(SecondaryFastGunSwapKeybindString, "P") {
             OptimizedShoot(ActiveSlots, delay)
-
-            Sleep(-1)
         }
     }
     else {
@@ -317,6 +315,8 @@ FastGunSwap(hk := "") {
 
 OptimizedShoot(CurArray, CurDelay) {
     for Key in CurArray {
+        Sleep(-1)
+        
         if (!ScriptActive) {
             return
         }
@@ -445,12 +445,19 @@ LagSwitchCount() {
     }
 }
 
-GetProcessPath(processName) { ; lowkey dont understand what this does but it works
+GetProcessPath(processName) {
+    static MSGBOXSTARTDONE := false
+
     for proc in ComObjGet("winmgmts:").ExecQuery("Select ExecutablePath from Win32_Process Where Name = '" . processName . "'") {
         if proc.ExecutablePath
             return proc.ExecutablePath
     }
-    throw Error("Roblox not found, reopen the macro when you have opened Roblox if you wan the lag switch to work")
+    
+    if (MSGBOXSTARTDONE) {
+        MsgBox("Roblox not found, close the macro and reopen it when you have joined Roblox if you want lag switch to work")
+    }
+
+    MSGBOXSTARTDONE := true
 }
 
 ; -- Pressure Jump --
@@ -605,12 +612,9 @@ FreezeCount() { ; useless function
     }
 }
 
+#HotIf CheckBoxShiftHolderBOOL and !IsChatting and !IsCrouching
 ; -- Shift Holder --
 ~$*LShift:: {
-    if (!CheckBoxShiftHolderBOOL or IsChatting or IsCrouching) {
-        return
-    }
-
     global ShiftHolder := !ShiftHolder
     global IsCrouching := false
     global IsChatting := false
@@ -631,6 +635,7 @@ FreezeCount() { ; useless function
     }
 }
 
+#HotIf CheckBoxShiftHolderBOOL
 ; Disables sprint toggle if crouched
 *$c:: {
     global ShiftHolder := false
@@ -640,18 +645,6 @@ FreezeCount() { ; useless function
 
     Send "{LShift up}"
     Send "{Blind}c"
-}
-
-; Resets sprint toggle
-SprintToggleReset(hk := "") {
-    global ShiftHolder := false
-    global IsCrouching := false
-    global IsChatting := false
-
-    ShiftHolderStatus.Opt("BackgroundD81F25")
-    ShiftHolderStatus.Redraw()
-
-    Send "{LShift up}"
 }
 
 ; Disable sprint toggle if chatting
@@ -712,6 +705,18 @@ SprintToggleReset(hk := "") {
     ShiftHolderStatus.Redraw()
 }
 #HotIf
+
+; Resets sprint toggle
+SprintToggleReset(hk := "") {
+    global ShiftHolder := false
+    global IsCrouching := false
+    global IsChatting := false
+
+    ShiftHolderStatus.Opt("BackgroundD81F25")
+    ShiftHolderStatus.Redraw()
+
+    Send "{LShift up}"
+}
 
 ; -- Minimize/Show GUI --
 MinimizeOrShowGUI(hk := "") {
@@ -1741,17 +1746,17 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s27 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.2")
+        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.3")
 
         ; -- Change Logs --
         ; 1
-        AddText("Improved Roblox performance maybe", FirstLog)
+        AddText("Fixed clunky movement for people who don't use sprint toggle", FirstLog)
 
         ; 2
-        AddText("Made lag switch delay shorter", DoubleLog)
+        ;AddText("Made lag switch delay shorter", DoubleLog)
 
         ; 3
-        AddText("Made macro keybind inputs faster", DoubleLog)
+        ;AddText("Made macro keybind inputs faster", DoubleLog)
 
         ; 4
         ;AddText("Added update button in settings gui so you don't have to open the launcher to update", TripleLog)
