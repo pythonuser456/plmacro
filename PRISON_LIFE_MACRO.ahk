@@ -45,52 +45,6 @@ DllCall("SetProcessWorkingSetSize", "Ptr", -1, "UPtr", -1, "UPtr", -1, "UInt", 1
 
 DllCall("winmm\timeBeginPeriod", "UInt", 1)
 
-; -- Create new lag switch rule --
-PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
-CurrentPath := GetProcessPath(PID)
-
-try {
-    ; Cache the policy manager globally
-    fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
-    rules := fwPolicy2.Rules
-
-    ; Remove old rule
-    try rules.Remove("RobloxLagSwitch")
-
-    ; Create new rule
-    ruleObj := ComObject("HNetCfg.FwRule")
-    ruleObj.Name := "RobloxLagSwitch"
-    ruleObj.ApplicationName := CurrentPath
-    ruleObj.Direction := 2 ; Outbound
-    ruleObj.Action := 0    ; Block
-
-    ruleObj.InterfaceTypes := "All"
-
-    ruleObj.Enabled := false
-
-    rules.Add(ruleObj)
-
-    ; Lock the rule
-    fwRule := rules.Item("RobloxLagSwitch")
-}
-
-; -- Give Roblox Max Performance --
-try {
-    RunWait('REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\RobloxPlayerBeta.exe" /f', , "Hide")
-    RunWait('REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\WindowsUniversal.exe" /f', , "Hide")
-}
-
-; 2. Restore default Fullscreen Optimization handlers
-try {
-    RunWait('REG DELETE "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "' . GetProcessPath("RobloxPlayerBeta.exe") . '" /f', , "Hide")
-}
-
-; 3. Revert your network congestion configurations back to Windows stock defaults
-try {
-    RunWait('netsh int tcp set global autotuninglevel=normal', , "Hide")
-    RunWait('netsh int tcp set global ecncapability=disabled', , "Hide")
-}
-
 ; -- Settings load --
 SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
 
@@ -99,12 +53,14 @@ ScriptActive := false
 global ShiftHolder := false
 ShowUi := false
 
+; - Checkboxes - 
 CheckBoxShiftHolderBOOL := false
-CheckBoxLagSwitchBOOL := false
+CheckBoxLagSwitchRuleAutoBOOL := false
 CheckBoxSoundBeepBOOL := false
 CheckBoxTurnOffChangelogBOOL := false
+
 CheckBoxShiftHolder := ""
-CheckBoxLagSwitch := ""
+CheckBoxLagSwitchRuleAuto := ""
 CheckBoxSoundBeep := ""
 CheckBoxTurnOffChangelog := ""
 
@@ -152,7 +108,7 @@ KeybindSettingsVars := [
 ]
 
 OtherSettingsCheckboxBOOL := [
-    "CheckBoxShiftHolderBOOL", "CheckBoxSoundBeepBOOL", "CheckBoxTurnOffChangelogBOOL"
+    "CheckBoxShiftHolderBOOL", "CheckBoxLagSwitchRuleAutoBOOL","CheckBoxSoundBeepBOOL", "CheckBoxTurnOffChangelogBOOL"
 ]
 
 IsHelpVisible := false
@@ -266,6 +222,11 @@ if (Loaded_ShootMode_Setting != "empty") {
 ; CHANGE LOG CALL
 if (!CheckBoxTurnOffChangelogBOOL) {
     ChangeLogGui()
+}
+
+; Auto create lag switch rule
+if (CheckBoxLagSwitchRuleAutoBOOL) {
+    CreateLagSwitchRule()
 }
 
 ; -- Main Toggle --
@@ -382,6 +343,68 @@ IncreaseOrDecreaseShortcutLogic(input) {
         DllCall("Beep", "UInt", 550, "UInt", 20)
 }
 
+; -- Create lag switch rule --
+CreateLagSwitchRule() {
+    global
+    
+    ; -- Create new lag switch rule --
+    PID := ProcessExist("RobloxPlayerBeta.exe") ? "RobloxPlayerBeta.exe" : "WindowsUniversal.exe"
+    CurrentPath := GetProcessPath(PID)
+
+    try {
+        ; Cache the policy manager globally
+        fwPolicy2 := ComObject("HNetCfg.FwPolicy2")
+        rules := fwPolicy2.Rules
+
+        ; Remove old rule
+        try rules.Remove("RobloxLagSwitch")
+
+        ; Create new rule
+        ruleObj := ComObject("HNetCfg.FwRule")
+        ruleObj.Name := "RobloxLagSwitch"
+        ruleObj.ApplicationName := CurrentPath
+        ruleObj.Direction := 2 ; Outbound
+        ruleObj.Action := 0    ; Block
+
+        ruleObj.InterfaceTypes := "All"
+
+        ruleObj.Enabled := false
+
+        rules.Add(ruleObj)
+
+        ; Lock the rule
+        fwRule := rules.Item("RobloxLagSwitch")
+
+        ; Create lag switch rule button animation
+        CreateLagSwitchRuleButton.Opt("Background18181c")
+        CreateLagSwitchRuleButton.Redraw()
+
+        SetTimer(anim, -150)
+
+        anim() {
+            CreateLagSwitchRuleButton.Opt("BackgroundF0F0F0")
+            CreateLagSwitchRuleButton.Redraw()
+        }
+    }
+
+    ; -- Give Roblox Max Performance --
+    try {
+        RunWait('REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\RobloxPlayerBeta.exe" /f', , "Hide")
+        RunWait('REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\WindowsUniversal.exe" /f', , "Hide")
+    }
+
+    ; 2. Restore default Fullscreen Optimization handlers
+    try {
+        RunWait('REG DELETE "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "' . GetProcessPath("RobloxPlayerBeta.exe") . '" /f', , "Hide")
+    }
+
+    ; 3. Revert your network congestion configurations back to Windows stock defaults
+    try {
+        RunWait('netsh int tcp set global autotuninglevel=normal', , "Hide")
+        RunWait('netsh int tcp set global ecncapability=disabled', , "Hide")
+    }
+}
+
 ; -- Lag Switcher --
 Lagswitch(hk := "") {
     Critical 1
@@ -453,8 +476,8 @@ GetProcessPath(processName) {
             return proc.ExecutablePath
     }
     
-    if (MSGBOXSTARTDONE) {
-        MsgBox("Roblox not found, close the macro and reopen it when you have joined Roblox if you want lag switch to work")
+    if (!MSGBOXSTARTDONE) {
+        MsgBox("Roblox not found, close the macro and reopen it when you join Roblox if you want lag-switch to work")
     }
 
     MSGBOXSTARTDONE := true
@@ -907,6 +930,12 @@ HelpGui() {
                 To freeze clip, you need to walk directly to a thin wall (around 0.9 studs). 
                  Set your camera angle to around 120 degrees or exactly 180 degrees (google a protractor image). 
                  Then press B and try to reach the other side of the wall you chose
+            )",
+            " ; lag switch info
+            (Join
+                To lag switch, click the "Create Lag-Switch Rule" button in settings gui while Roblox proccess
+                 is running (RobloxPlayerBeta.exe). Aditionally, "Create Startup Lag-Switch Rule" checkbox in settings gui
+                 automatically creates a lag switch rule upon starting the macro
             )"
         ]
 
@@ -930,7 +959,7 @@ HelpGui() {
         ChangelogOpenH := 40
 
         GuiHelp.SetFont("s17 bold cF0F0F0", "Arial")
-        ChangelogOpen := GuiHelp.Add("Text", "x240 y+40 w" ChangelogOpenW " h" ChangelogOpenH " Center 0x200 BackgroundE1A91A", "Change Logs")
+        ChangelogOpen := GuiHelp.Add("Text", "x240 y+30 w" ChangelogOpenW " h" ChangelogOpenH " Center 0x200 BackgroundE1A91A", "Change Logs")
         ;GuiHelp.Add("Text", "xp+5 yp+16 wp BackgroundTrans", "Change Logs")
 
         ChangelogOpen.OnEvent("Click", (*) => ChangeLogGui())
@@ -957,7 +986,7 @@ HelpGui() {
     ; Shows/closes help GUI
     if (IsHelpVisible) {
         HelpGuiW := 830
-        HelpGuiH := 680
+        HelpGuiH := 780
 
         GuiHelp.Show("w" HelpGuiW " h" HelpGuiH "")
         WinSetRegion("0-0 w" HelpGuiW " h" HelpGuiH " r20-20", GuiHelp.Hwnd)
@@ -974,7 +1003,7 @@ SettingsGui() {
     if (!SettingsGuiShow) {
         global GuiSetting, Sens_Input, MousePointerSpeed_Input, GunsSettingEditbox
         global GunsAmountStatus, ShootDelayEditbox, ReloadDelayEditbox, GunAmountVar
-        global CheckBoxShiftHolder, CheckBoxLagSwitch, CheckBoxSoundBeep, CheckBoxTurnOffChangelog
+        global CheckBoxShiftHolder, CheckBoxLagSwitchRuleAuto, CheckBoxSoundBeep, CheckBoxTurnOffChangelog
 
         global GunSlot1CheckboxBool, GunSlot2CheckboxBool, GunSlot3CheckboxBool
         global GunSlot4CheckboxBool, GunSlot5CheckboxBool, GunSlot6CheckboxBool
@@ -997,7 +1026,7 @@ SettingsGui() {
 
         ; Title for settings GUI
         GuiSetting.SetFont("s30 bold cF0F0F0", "Segoe UI")
-        GuiSetting.Add("Text", "x178 y0 w700 Center", "Macro Settings")
+        GuiSetting.Add("Text", "x230 y0 w700 Center BackgroundTrans", "Macro Settings")
 
         ; -- Keybind setting gui --
         KeybindSettingsStringVars := [
@@ -1077,8 +1106,9 @@ SettingsGui() {
         OtherSettingsNames := [
             "Shoot Delay", "milisecond1", "Reload Delay",
             "milisecond2", "Pressure Jump", "Sprint Toggle",
-            "Sound Beep Toggle", "Turn Off Changelog"
+            "Create Startup Lag-Switch Rule", "Sound Beep Toggle", "Disable Startup Update Logs"
         ]
+        static EditBoxVars_for_OtherSettingsNames := 5
 
         OtherSettingsEditbox := [
             "ShootDelayEditbox", 0, "ReloadDelayEditbox", 0
@@ -1102,7 +1132,7 @@ SettingsGui() {
         }
 
         OtherSettingsCheckbox := [
-            "CheckBoxShiftHolder", "CheckBoxSoundBeep", "CheckBoxTurnOffChangelog"
+            "CheckBoxShiftHolder", "CheckBoxLagSwitchRuleAuto", "CheckBoxSoundBeep", "CheckBoxTurnOffChangelog"
         ]
 
         ; -- Other settings --
@@ -1111,7 +1141,7 @@ SettingsGui() {
 
             static OtherSettingGuiNameX := 390
             static OtherSettingGuiNameY := 70
-            static OtherSettingsEditboxX := 250
+            static OtherSettingsEditboxX := 360
             static CheckBoxX := OtherSettingsEditboxX - 1
 
             if (CurName == "Pressure Jump") {
@@ -1139,7 +1169,7 @@ SettingsGui() {
 
             ; Other settings name
             GuiSetting.SetFont("s15 bold cF0F0F0", "Consolas")
-            GuiSetting.Add("Text", "x" OtherSettingGuiNameX " y" OtherSettingGuiNameY " w330", CurName)
+            GuiSetting.Add("Text", "x" OtherSettingGuiNameX " y" OtherSettingGuiNameY " w500 BackgroundTrans", CurName)
             GuiSetting.SetFont("c060606")
 
             ; for editbox
@@ -1160,7 +1190,7 @@ SettingsGui() {
 
                 ; Mouse pointer speed editbox
                 GuiSetting.SetFont("s12")
-                MousePointerSpeed_Input := GuiSetting.AddEdit("xp+170 yp w30 h20 Number BackgroundF0F0F0", CurEditboxValue)
+                MousePointerSpeed_Input := GuiSetting.AddEdit("xp+260 yp w30 h20 Number BackgroundF0F0F0", CurEditboxValue)
 
                 ; Mouse pointer speed clarification
                 GuiSetting.SetFont("s7 cF0F0F0")
@@ -1171,9 +1201,10 @@ SettingsGui() {
                 } else {
                     CurEditboxValue := OtherSettingsEditboxValue[i]
                 }
+                
                 ; Roblox sensitivity editbox
                 GuiSetting.SetFont("s12 c060606")
-                Sens_Input := GuiSetting.AddEdit("xp+90 yp-20 w45 h20 BackgroundF0F0F0", CurEditboxValue)
+                Sens_Input := GuiSetting.AddEdit("xp+110 yp-20 w45 h20 BackgroundF0F0F0", CurEditboxValue)
 
                 ; Roblox sensitivity clarification
                 GuiSetting.SetFont("s7 cF0F0F0")
@@ -1183,7 +1214,7 @@ SettingsGui() {
             else {
                 GuiSetting.SetFont("s12 c060606")
 
-                CurCheckboxCount := i - 5 ; number is how many editboxes are in OtherSettingsNames array
+                CurCheckboxCount := i - EditBoxVars_for_OtherSettingsNames
                 CurCheckbox := OtherSettingsCheckbox[CurCheckboxCount]
 
                 ; checkbox
@@ -1219,7 +1250,7 @@ SettingsGui() {
             CurGunStringName := "Slot " . i
             CurGunCheckbox := GunSlotCheckboxNames[i]
 
-            static GunAmountSettingsGuiNameX := 710
+            static GunAmountSettingsGuiNameX := 820
             static GunAmountSettingsGuiNameY := 70
             static GunCheckboxX := 200
 
@@ -1251,20 +1282,28 @@ SettingsGui() {
 
         ; X button in settings GUI
         GuiSetting.SetFont("s17 bold cF0F0F0", "Arial")
-        GuiSetting.Add("Text", "x951 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideSetting())
+        GuiSetting.Add("Text", "x1058 y0 w40 h25 Center BackgroundD81F25", "X").OnEvent("Click", (*) => HideSetting())
 
-        ; Apply button
+        ; Save and apply button
         GuiSetting.SetFont("s11 bold cF0F0F0", "Arial")
-        ApplyButtonSetting := GuiSetting.Add("Text", "x445 y375 w170 h50 Center 0x200 BackgroundD81F25", "Save && Apply Settings")
+        ApplyButtonSetting := GuiSetting.Add("Text", "x495 y375 w170 h50 Center 0x200 BackgroundD81F25", "Save && Apply Settings")
 
         ApplyButtonSetting.OnEvent("Click", (*) => KeybindModifier())
         global ApplyButtonSetting
+
+        ; Create lag switch rule button
+        GuiSetting.SetFont("s11 bold c060606", "Arial")
+        CreateLagSwitchRuleButton := GuiSetting.Add("Text", "x495 y325 w170 h50 Center 0x200 BackgroundF0F0F0", "Create Lag-Switch Rule")
+
+        CreateLagSwitchRuleButton.OnEvent("Click", (*) => CreateLagSwitchRule())
+        global CreateLagSwitchRuleButton
 
         ; Update Button
         UpdateButtonW := 130
         UpdateButtonH := 40
 
-        UpdateButtonSetting := GuiSetting.Add("Text", "x800 y420 w" UpdateButtonW " h" UpdateButtonH " Center 0x200 BackgroundD81F25", "UPDATE MACRO")
+        GuiSetting.SetFont("s11 bold cF0F0F0", "Arial")
+        UpdateButtonSetting := GuiSetting.Add("Text", "x880 y420 w" UpdateButtonW " h" UpdateButtonH " Center 0x200 BackgroundD81F25", "UPDATE MACRO")
         ;GuiSetting.Add("Text", "xp+5 yp+16 wp BackgroundTrans", "UPDATE MACRO")
 
         UpdateButtonSetting.OnEvent("Click", (*) => UpdateMacro())
@@ -1283,7 +1322,7 @@ SettingsGui() {
 
         ; Credit in settings GUI
         GuiSetting.SetFont("s15 cF0F0F0", "Consolas")
-        GuiSetting.Add("Text", "x40 y450 w1000 Center BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.Add("Text", "x80 y450 w1000 Center BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
 
 
         SettingsGuiShow := true
@@ -1294,7 +1333,7 @@ SettingsGui() {
 
     ; Shows/closes Settings GUI
     if (IsSettingsVisible) {
-        SettingsGuiShowW := 1240
+        SettingsGuiShowW := 1370
         SettingsGuiShowH := 600
 
         GuiSetting.Show("w" SettingsGuiShowW " h" SettingsGuiShowH "")
@@ -1320,11 +1359,17 @@ CheckboxFunction(num) {
                 SprintToggleReset()
             }
         case 2:
+            ; Lag switch auto startup
+            global CheckBoxLagSwitchRuleAutoBOOL := !CheckBoxLagSwitchRuleAutoBOOL
+            CheckBoxLagSwitchRuleAuto.Opt(CheckBoxLagSwitchRuleAutoBOOL ? "Background00FF00" : "Background060606")
+            CheckBoxLagSwitchRuleAuto.Redraw()
+        case 3:
             ; Sound beep
             global CheckBoxSoundBeepBOOL := !CheckBoxSoundBeepBOOL
             CheckBoxSoundBeep.Opt(CheckBoxSoundBeepBOOL ? "Background00FF00" : "Background060606")
             CheckBoxSoundBeep.Redraw()
-        case 3:
+        case 4:
+            ; Change log auto startup
             global CheckBoxTurnOffChangelogBOOL := !CheckBoxTurnOffChangelogBOOL
             CheckBoxTurnOffChangelog.Opt(CheckBoxTurnOffChangelogBOOL ? "Background00FF00" : "Background060606")
             CheckBoxTurnOffChangelog.Redraw()
@@ -1746,14 +1791,14 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s27 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.3")
+        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.4")
 
         ; -- Change Logs --
         ; 1
-        AddText("Fixed clunky movement for people who don't use sprint toggle", FirstLog)
+        AddText("New settings for lag switch", FirstLog)
 
         ; 2
-        ;AddText("Made lag switch delay shorter", DoubleLog)
+        AddText("Added information for turning on lag switch in help gui", OneLog)
 
         ; 3
         ;AddText("Made macro keybind inputs faster", DoubleLog)
