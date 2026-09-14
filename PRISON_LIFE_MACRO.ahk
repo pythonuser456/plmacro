@@ -441,7 +441,8 @@ Lagswitch(hk := "") {
     try {
         fwRule.Enabled := bool
     }
-}*/
+}
+*/
 
 LagSwitchCount() {
     global IsLagging, LagSwitchTL
