@@ -116,20 +116,20 @@ GunAmountVar := 0
 SecondaryFastGunSwapKeybindString := ""
 
 ; Keybinds (order matches the settings GUI and the INI save)
-; NeedsActive = the hotkey only works while the macro is ON
+; When = condition the hotkey needs to fire ("" = always works)
 Keybinds := [
-    {Label: "Main Toggle",         Default: "Alt", Func: MainToggle,            NeedsActive: false},
-    {Label: "Fast Gun Swap",       Default: "LMB", Func: FastGunSwap,           NeedsActive: true},
-    {Label: "Shuffle Reload",      Default: "r",   Func: ShuffleReload,         NeedsActive: true},
-    {Label: "Lag Switch",          Default: "t",   Func: Lagswitch,             NeedsActive: true},
-    {Label: "Pressure Jump",       Default: "g",   Func: PressureJump,          NeedsActive: true},
-    {Label: "Freeze Clip",         Default: "b",   Func: FreezeClip,            NeedsActive: true},
-    {Label: "Freeze Roblox",       Default: "y",   Func: FreezeRoblox,          NeedsActive: true},
-    {Label: "Reset Sprint Toggle", Default: "m",   Func: SprintToggleReset,     NeedsActive: true},
-    {Label: "Show/Minimize",       Default: "f4",  Func: MinimizeOrShowGUI,     NeedsActive: false},
-    {Label: "Close Macro",         Default: "Del", Func: StopMacro,             NeedsActive: false},
-    {Label: "Increase Gun Amount", Default: "p",   Func: IncreaseGunAmountFunc, NeedsActive: true},
-    {Label: "Decrease Gun Amount", Default: "o",   Func: DecreaseGunAmountFunc, NeedsActive: true}
+    {Label: "Main Toggle",         Default: "Alt", Func: MainToggle,            When: ""},
+    {Label: "Fast Gun Swap",       Default: "LMB", Func: FastGunSwap,           When: IsScriptActive},
+    {Label: "Shuffle Reload",      Default: "r",   Func: ShuffleReload,         When: IsScriptActive},
+    {Label: "Lag Switch",          Default: "t",   Func: Lagswitch,             When: IsScriptActive},
+    {Label: "Pressure Jump",       Default: "g",   Func: PressureJump,          When: IsScriptActive},
+    {Label: "Freeze Clip",         Default: "b",   Func: FreezeClip,            When: IsScriptActive},
+    {Label: "Freeze Roblox",       Default: "y",   Func: FreezeRoblox,          When: IsScriptActive},
+    {Label: "Reset Sprint Toggle", Default: "m",   Func: SprintToggleReset,     When: CanResetSprint}, ; works like sprint toggle, even with the macro OFF
+    {Label: "Show/Minimize",       Default: "f4",  Func: MinimizeOrShowGUI,     When: ""},
+    {Label: "Close Macro",         Default: "Del", Func: StopMacro,             When: ""},
+    {Label: "Increase Gun Amount", Default: "p",   Func: IncreaseGunAmountFunc, When: IsScriptActive},
+    {Label: "Decrease Gun Amount", Default: "o",   Func: DecreaseGunAmountFunc, When: IsScriptActive}
 ]
 
 ; -- GUI Call --
@@ -169,6 +169,7 @@ SetCheckboxColor(Ctrl, State) {
 }
 
 IsScriptActive(*) => ScriptActive
+CanResetSprint(*) => CheckBoxShiftHolderBOOL && !IsChatting
 
 ; -- Main Toggle --
 MainToggle(hk := "") {
@@ -525,6 +526,23 @@ freeze(FreezeChoice) {
     BeepIfEnabled()
 }
 
+; Note: when several #HotIf variants of the same key are eligible, the one written first wins,
+; so this "un-crouch" c must stay above the "crouch" c below
+#HotIf CheckBoxShiftHolderBOOL and IsCrouching
+; If done crouching allow sprinting again
+*$c:: {
+    global ShiftHolder := true
+
+    Send "{Blind}c"
+
+    Sleep(64)
+    global IsCrouching := false
+    Send "{LShift down}"
+
+    ShiftHolderStatus.Opt("Background00FF7F")
+    ShiftHolderStatus.Redraw()
+}
+
 #HotIf CheckBoxShiftHolderBOOL
 ; Disables sprint toggle if crouched
 *$c:: {
@@ -559,21 +577,6 @@ freeze(FreezeChoice) {
 ~*$Enter::
 ~$*LButton:: {
     global IsChatting := false
-}
-
-#HotIf IsCrouching
-; If done crouching allow sprinting again
-*$c:: {
-    global ShiftHolder := true
-
-    Send "{Blind}c"
-
-    Sleep(64)
-    global IsCrouching := false
-    Send "{LShift down}"
-
-    ShiftHolderStatus.Opt("Background00FF7F")
-    ShiftHolderStatus.Redraw()
 }
 #HotIf
 
@@ -1028,8 +1031,8 @@ ApplyKeybinds() {
 
         KeyName := (CurText == "LMB") ? "LButton" : CurText
 
-        if (kb.NeedsActive)
-            HotIf(IsScriptActive)
+        if (kb.When)
+            HotIf(kb.When)
         else
             HotIf()
 
