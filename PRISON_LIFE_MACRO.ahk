@@ -42,7 +42,7 @@ DllCall("ntdll\NtSetTimerResolution", "UInt", 10000, "Int", 1, "UInt*", &Current
 DllCall("SetProcessWorkingSetSize", "Ptr", -1, "UPtr", -1, "UPtr", -1, "UInt", 1)
 DllCall("winmm\timeBeginPeriod", "UInt", 1)
 
-SettingSavePathINI := A_ScriptDir "\SettingsConfig.ini"
+SettingSavePathINI := A_ScriptDir "\PL-Macro-Settings.ini"
 
 ; -- Resolution scaling --
 ; The GUIs were laid out on a 1920x1080 screen at 125% Windows scaling (120 DPI).
@@ -85,6 +85,7 @@ IsCrouching := false
 IsChatting := false
 IsLagging := false
 IsFrozen := false
+IsPunching := false
 IsFastGunSwapHolding := false
 FastGunSwapChoiceIsHold := true
 Turn180Deg := false
@@ -129,7 +130,8 @@ Keybinds := [
     {Label: "Show/Minimize",       Default: "f4",  Func: MinimizeOrShowGUI,     When: ""},
     {Label: "Close Macro",         Default: "Del", Func: StopMacro,             When: ""},
     {Label: "Increase Gun Amount", Default: "p",   Func: IncreaseGunAmountFunc, When: IsScriptActive},
-    {Label: "Decrease Gun Amount", Default: "o",   Func: DecreaseGunAmountFunc, When: IsScriptActive}
+    {Label: "Decrease Gun Amount", Default: "o",   Func: DecreaseGunAmountFunc, When: IsScriptActive},
+    {Label: "Punch Spam",          Default: "f",   Func: PunchSpam,             When: IsScriptActive} ; new keybinds go at the end so old INI saves still load in order
 ]
 
 ; -- GUI Call --
@@ -238,6 +240,31 @@ ShuffleReload(hk := "") {
         Send "{Blind}{" Key "}"
         SuperSleep(delay)
         Send "{Blind}r"
+    }
+
+    BeepIfEnabled()
+}
+
+; -- Punch Spam -- 
+PunchSpam(hk := "") {
+    global IsPunching
+
+    IsPunching := !IsPunching
+
+    if (IsPunching) {
+        SetTimer(Punch, -1)
+    } else {
+        SetTimer(Punch, 0)
+    }   
+
+    Punch() {
+        if (!IsPunching or !ScriptActive) {
+            return
+        }
+
+        Send "{Blind}f"
+
+        SetTimer(Punch, -1)
     }
 
     BeepIfEnabled()
@@ -400,16 +427,16 @@ GetProcessPath(processName) {
 PressureJump(hk := "") {
     BeepIfEnabled()
 
-    if (Sens_Input.Value == 0 or MousePointerSpeed_Input.Value == 0) {
-        MsgBox("Put your Roblox Sensitivity and Mouse Pointer Speed in the settings. More info in the help GUI")
+    if (!IsNumber(Sens_Input.Value) || Sens_Input.Value <= 0) {
+        MsgBox("Put your Roblox Sensitivity in the settings. More info in the help GUI")
         return
     }
 
-    if Number(MousePointerSpeed_Input.Value) < 4
-        MousePointerSpeed_Input.Value := 4
+    ; Mouse distance for a 180 degree spin, based only on Roblox sensitivity (Windows pointer speed doesn't affect it)
+    global Turn180Var := float(4000.0 / Number(Sens_Input.Value))
 
-    global WindowsRawSensitivity := float(4.0 / Number(MousePointerSpeed_Input.Value))
-    global Turn180Var := float(WindowsRawSensitivity * (4000.0 / Number(Sens_Input.Value)))
+    ; If sprint toggle stopped sprint for a manual crouch, the c below un-crouches, so sprint comes back after
+    WasCrouching := CheckBoxShiftHolderBOOL && IsCrouching
 
     Send "{Blind}c"
     Sleep(17)
@@ -432,6 +459,9 @@ PressureJump(hk := "") {
     }
 
     global IsCrouching := false
+
+    if (WasCrouching)
+        ResumeSprint()
 }
 
 ; -- Freeze Clip --
@@ -460,16 +490,39 @@ FreezeClip(hk := "") {
 }
 
 ; -- Freeze Roblox --
+; Suspends the whole Roblox process (not just the window thread), so it stays frozen until pressed again
 FreezeRoblox(hk := "") {
-    global IsFrozen := !IsFrozen
+    global IsFrozen
 
-    ; Freeze/Unfreeze
-    switch IsFrozen {
-        case true:
-            freeze(1)
-        case false:
-            freeze(2)
+    if (SuspendRoblox(!IsFrozen))
+        IsFrozen := !IsFrozen
+
+    ; Holding the key would auto-repeat and toggle the freeze back off
+    if (hk != "")
+        KeyWait(RegExReplace(hk, "^[~*$]+"))
+}
+
+SuspendRoblox(Suspend) {
+    pid := ProcessExist("RobloxPlayerBeta.exe") || ProcessExist("Windows10Universal.exe")
+
+    if (!pid) {
+        ToolTip("Roblox not found")
+        SetTimer () => ToolTip(), -1500
+        return false
     }
+
+    ; 0x0800 = PROCESS_SUSPEND_RESUME
+    hProcess := DllCall("Kernel32.dll\OpenProcess", "UInt", 0x0800, "Int", false, "UInt", pid, "Ptr")
+
+    if (!hProcess) {
+        ToolTip("Failed to connect to Roblox process")
+        SetTimer () => ToolTip(), -1500
+        return false
+    }
+
+    DllCall("ntdll\" (Suspend ? "NtSuspendProcess" : "NtResumeProcess"), "Ptr", hProcess)
+    DllCall("Kernel32.dll\CloseHandle", "Ptr", hProcess)
+    return true
 }
 
 ; -- Freeze Functions --
@@ -531,16 +584,11 @@ freeze(FreezeChoice) {
 #HotIf CheckBoxShiftHolderBOOL and IsCrouching
 ; If done crouching allow sprinting again
 *$c:: {
-    global ShiftHolder := true
-
     Send "{Blind}c"
 
     Sleep(64)
     global IsCrouching := false
-    Send "{LShift down}"
-
-    ShiftHolderStatus.Opt("Background00FF7F")
-    ShiftHolderStatus.Redraw()
+    ResumeSprint()
 }
 
 #HotIf CheckBoxShiftHolderBOOL
@@ -580,6 +628,15 @@ freeze(FreezeChoice) {
 }
 #HotIf
 
+; Turns sprint toggle back on (after un-crouching)
+ResumeSprint() {
+    global ShiftHolder := true
+    Send "{LShift down}"
+
+    ShiftHolderStatus.Opt("Background00FF7F")
+    ShiftHolderStatus.Redraw()
+}
+
 ; Resets sprint toggle
 SprintToggleReset(hk := "") {
     global ShiftHolder := false
@@ -612,6 +669,10 @@ MinimizeOrShowGUI(hk := "") {
 ; -- Macro close --
 StopMacro(hk := "") {
     Send "{LShift up}"
+
+    ; Don't leave Roblox frozen forever
+    if (IsSet(IsFrozen) && IsFrozen) ; IsSet: the admin relaunch calls this before the variables exist
+        SuspendRoblox(false)
 
     try rules.Remove("RobloxLagSwitch")
     DllCall("Winmm\timeEndPeriod", "UInt", 1)
@@ -693,35 +754,42 @@ HelpGui() {
 
         ; -- Extra info --
         ExtraInfoHelpStrings := [
+            "
+            (Join
+                To activate this macro, press the main toggle keybind (Alt by default).
+            )",
             " ; fast gun swap info
             (Join
                 To use the fast weapon swap macro,
-                 you need to select your inventory slots where your guns are
-                 in the settings or use the O/P keybinds.
-                 The recommended shoot delay is 8 milisecond (might be false)
+                 select the gun slots in settings. Alternatively, you can
+                 use O/P keybinds to select gun slots for you.
+                 The recommended shoot delay is 8 milisecond.
             )",
             " ; pressure jump info
             (Join
                 To activate the pressure jump macro,
-                 put your roblox sensitivity and your mouse pointer speed (search it your windows settings) in the macro settings.
+                 put your roblox sensitivity in settings.
                  Walk up to one of the pressure jump spots (search up youtube tutorial for the spots).
-                 Then crouch and shove your head fully into the object
-                 then press G. Also if you set your mouse pointer lower than 4 the script
-                 would automatically set your mouse pointer speed to 4 in the macro settings
-                 so the pressure jump would work. The more fps you have, the better the macro works.
-                 If you only have 30 fps or 60 fps this might not work
+                 Then crouch and shove your head fully into the spot,
+                 then press G. The more fps you have, the better the pressure jump works.
+                 If you are on 30 fps pressure jump might not work.
             )",
             " ; freeze clip info
             (Join
-                To freeze clip, you need to walk directly to a thin wall (around 0.9 studs).
+                To freeze clip, walk directly to a thin wall (around 0.9 studs).
                  Set your camera angle to around 120 degrees or exactly 180 degrees (google a protractor image).
-                 Then press B and try to reach the other side of the wall you chose
+                 Then press the freeze clip keybind (B by default) ,and try to reach the other side of the wall you chose.
             )",
             " ; lag switch info
             (Join
-                To lag switch, click the "Create Lag-Switch Rule" button in settings gui while Roblox proccess
+                To lag switch, click the "Create Lag-Switch Rule" button in settings while Roblox proccess
                  is running (RobloxPlayerBeta.exe). Aditionally, "Create Startup Lag-Switch Rule" checkbox in settings gui
-                 automatically creates a lag switch rule upon starting the macro
+                 automatically creates a lag switch rule upon starting this macro.
+            )",
+            " ; punch spam info
+            (Join
+                To punch spam, press the Punch Spam keybind (F by default) once to start spamming punches,
+                 then press it again to stop. The macro has to be ON for the keybind to work.
             )"
         ]
 
@@ -757,7 +825,7 @@ HelpGui() {
 
     ; Shows/closes help GUI
     if (IsHelpVisible) {
-        ShowRounded(GuiHelp, 830, 780, 20)
+        ShowRounded(GuiHelp, 830, 850, 20)
     } else {
         GuiHelp.Hide()
     }
@@ -767,7 +835,7 @@ HelpGui() {
 SettingsGui() {
     static SettingsGuiShow := false
     global GuiSetting, IsSettingsVisible
-    global ShootDelayEditbox, ReloadDelayEditbox, MousePointerSpeed_Input, Sens_Input
+    global ShootDelayEditbox, ReloadDelayEditbox, Sens_Input
     global FastGunSwapChoiceStatus, CreateLagSwitchRuleButton
 
     if (!SettingsGuiShow) {
@@ -779,7 +847,7 @@ SettingsGui() {
         GuiSetting.Add("Text", "x230 y0 w700 Center BackgroundTrans", "Macro Settings")
 
         ; -- Keybinds --
-        ; INI layout: key1|key2|Hold/Toggle|key3..key12|0
+        ; INI layout: key1|key2|Hold/Toggle|key3..key13|0
         SavedKeys := StrSplit(IniRead(SettingSavePathINI, "keybind_saves", "KeybindValues", ""), "|")
         HasSavedKeys := SavedKeys.Length >= 13
 
@@ -788,8 +856,10 @@ SettingsGui() {
             GuiSetting.Add("Text", "x40 y" (70 + (i - 1) * 30) " w400 BackgroundTrans", kb.Label)
             GuiSetting.Add("Text", "xp+240 yp w10", "=")
 
+            ; Keybinds newer than the save file (the trailing 0 or missing) use their default
+            SavedIndex := i <= 2 ? i : i + 1
             GuiSetting.SetFont("s15 bold c060606", "Consolas")
-            kb.Edit := GuiSetting.AddEdit("xp+30 yp w45 h25 0x200 BackgroundF0F0F0", HasSavedKeys ? SavedKeys[i <= 2 ? i : i + 1] : kb.Default)
+            kb.Edit := GuiSetting.AddEdit("xp+30 yp w45 h25 0x200 BackgroundF0F0F0", HasSavedKeys && SavedIndex < SavedKeys.Length ? SavedKeys[SavedIndex] : kb.Default)
 
             ; Hold/Toggle button for fast gun swap
             if (kb.Func == FastGunSwap) {
@@ -803,7 +873,7 @@ SettingsGui() {
         }
 
         ; -- Other settings --
-        ; INI layout: ShootDelay|ReloadDelay|0|0|MousePointerSpeed|Sensitivity
+        ; INI layout: ShootDelay|ReloadDelay|0|0|0|Sensitivity (5th was mouse pointer speed, no longer used)
         EditboxValues := StrSplit(IniRead(SettingSavePathINI, "editbox_saves", "EditboxValues", "8|0|0|0|0|0"), "|")
 
         AddSettingLabel(GuiSetting, "Shoot Delay", 70)
@@ -815,13 +885,8 @@ SettingsGui() {
         AddMillisecondLabel(GuiSetting, 115)
 
         AddSettingLabel(GuiSetting, "Pressure Jump", 140)
-        GuiSetting.SetFont("s12")
-        MousePointerSpeed_Input := GuiSetting.AddEdit("xp+260 yp w30 h20 Number BackgroundF0F0F0", EditboxValues[5])
-        GuiSetting.SetFont("s7 cF0F0F0")
-        GuiSetting.Add("Text", "xp-22 yp+20 w73 Center", "Mouse`nPointer Speed")
-
         GuiSetting.SetFont("s12 c060606")
-        Sens_Input := GuiSetting.AddEdit("xp+110 yp-20 w45 h20 BackgroundF0F0F0", EditboxValues[6])
+        Sens_Input := GuiSetting.AddEdit("xp+348 yp w45 h20 BackgroundF0F0F0", EditboxValues[6])
         GuiSetting.SetFont("s7 cF0F0F0")
         GuiSetting.Add("Text", "xp-9 yp+20 w50 Center", "Roblox sensitivity")
 
@@ -893,7 +958,7 @@ SettingsGui() {
 
         ; Credit in settings GUI
         GuiSetting.SetFont("s15 cF0F0F0", "Consolas")
-        GuiSetting.Add("Text", "x80 y450 w1000 Center BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
+        GuiSetting.Add("Text", "x80 y475 w1000 Center BackgroundTrans", "Made By @Idkwhattonamethis223 On Youtube")
 
         SettingsGuiShow := true
         ApplyKeybinds()
@@ -903,7 +968,7 @@ SettingsGui() {
 
     ; Shows/closes Settings GUI
     if (IsSettingsVisible) {
-        ShowRounded(GuiSetting, 1370, 600, 20)
+        ShowRounded(GuiSetting, 1370, 640, 20)
     } else {
         GuiSetting.Hide()
     }
@@ -973,7 +1038,7 @@ SaveSettings() {
     KeyValues.Push(0)
     IniWrite(JoinPipe(KeyValues), SettingSavePathINI, "keybind_saves", "KeybindValues")
 
-    IniWrite(JoinPipe([ShootDelayEditbox.Value, ReloadDelayEditbox.Value, 0, 0, MousePointerSpeed_Input.Value, Sens_Input.Value]),
+    IniWrite(JoinPipe([ShootDelayEditbox.Value, ReloadDelayEditbox.Value, 0, 0, 0, Sens_Input.Value]),
         SettingSavePathINI, "editbox_saves", "EditboxValues")
 
     IniWrite(JoinPipe([CheckBoxShiftHolderBOOL, CheckBoxLagSwitchRuleAutoBOOL, CheckBoxSoundBeepBOOL, CheckBoxTurnOffChangelogBOOL]),
@@ -1074,7 +1139,7 @@ ChangeLogGui() {
 
         ; Title for Change Log GUI
         GuiChangeLog.SetFont("s27 bold cF0F0F0", "Segoe UI")
-        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.5")
+        GuiChangeLog.Add("Text", "x0 y5 w430 Center", "Update Log V6.7")
 
         ; -- Change Logs --
         ; Below tile = 65
@@ -1082,8 +1147,10 @@ ChangeLogGui() {
         ; Double line = 70
         ; Tripe line = 95
         ; Four line = 125
-        AddText("Button placements in display resolution other than 1920 x 1080 doesn't look wacky now", 65)
-        AddText("Code cleanup", 125)
+        AddText("Improved pressure jump: you don't need to put your mouse pointer speed anymore", 65)
+        AddText("New spam punch macro", 125)
+        AddText("Updated help GUI", 45)
+        AddText(".ini file name is now PL-Macro-Settings.ini . If you still have SettingsConfig.ini file, you can delete it", 45)
 
         ; Credit in Change Log GUI
         GuiChangeLog.SetFont("s12 cF0F0F0", "Consolas")
